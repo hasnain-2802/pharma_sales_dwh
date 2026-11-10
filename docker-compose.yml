@@ -60,7 +60,7 @@ services:
 
   ingestion-api:
     <<: *airflow-common
-    command: uvicorn src.ingestion.api:app --host 0.0.0.0 --port 8000 --reload
+    command: bash -c "uvicorn src.ingestion.api:app --host 0.0.0.0 --port 8000 --reload"
     working_dir: /opt/airflow
     ports:
       - "8001:8000"
@@ -75,6 +75,8 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
       - postgres
 

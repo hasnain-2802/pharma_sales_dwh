@@ -1,0 +1,263 @@
+{
+  "id": null,
+  "uid": "storage-staging",
+  "title": "Storage & Staging Metrics",
+  "description": "Overview of staging table sizes and data distribution",
+  "tags": ["pharma", "staging", "storage"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "type": "piechart",
+      "title": "Row Distribution by Source",
+      "description": "Percentage of total rows per staging table",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT 'master_data' as source, count(*) as rows FROM stg.master_data UNION ALL SELECT 'manufacturing_data', count(*) FROM stg.manufacturing_data UNION ALL SELECT 'manufacturer_delivery_data', count(*) FROM stg.manufacturer_delivery_data UNION ALL SELECT 'warehouse_data', count(*) FROM stg.warehouse_data UNION ALL SELECT 'pharmacy_sales_data', count(*) FROM stg.pharmacy_sales_data UNION ALL SELECT 'hospital_demand_data', count(*) FROM stg.hospital_demand_data UNION ALL SELECT 'iot_streaming_data', count(*) FROM stg.iot_streaming_data",
+          "format": "table",
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "Staging-Postgres"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": true
+        },
+        "pieType": "donut",
+        "tooltip": { "mode": "single" },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": ["value", "percent"]
+        }
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 0 }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Total Staging Records",
+      "description": "Total rows across all staging tables",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT sum(cnt) as total_records FROM (SELECT count(*) as cnt FROM stg.master_data UNION ALL SELECT count(*) FROM stg.manufacturing_data UNION ALL SELECT count(*) FROM stg.manufacturer_delivery_data UNION ALL SELECT count(*) FROM stg.warehouse_data UNION ALL SELECT count(*) FROM stg.pharmacy_sales_data UNION ALL SELECT count(*) FROM stg.hospital_demand_data UNION ALL SELECT count(*) FROM stg.iot_streaming_data) t",
+          "format": "table",
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "Staging-Postgres"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto"
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 }
+    },
+    {
+      "id": 3,
+      "type": "table",
+      "title": "Table Row Counts",
+      "description": "Row counts per staging table",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT 'master_data' as table_name, count(*) as row_count FROM stg.master_data UNION ALL SELECT 'manufacturing_data', count(*) FROM stg.manufacturing_data UNION ALL SELECT 'manufacturer_delivery_data', count(*) FROM stg.manufacturer_delivery_data UNION ALL SELECT 'warehouse_data', count(*) FROM stg.warehouse_data UNION ALL SELECT 'pharmacy_sales_data', count(*) FROM stg.pharmacy_sales_data UNION ALL SELECT 'hospital_demand_data', count(*) FROM stg.hospital_demand_data UNION ALL SELECT 'iot_streaming_data', count(*) FROM stg.iot_streaming_data ORDER BY row_count DESC",
+          "format": "table",
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "Staging-Postgres"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": true,
+          "reducer": ["sum"],
+          "fields": ["row_count"]
+        }
+      },
+      "gridPos": { "h": 10, "w": 6, "x": 18, "y": 0 }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Date Coverage Span",
+      "description": "Number of days covered in pharmacy sales data",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT (max(salesdate::date) - min(salesdate::date))::int as days_covered FROM stg.pharmacy_sales_data",
+          "format": "table",
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "Staging-Postgres"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "purple", "value": null }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto"
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 5 }
+    },
+    {
+      "id": 5,
+      "type": "barchart",
+      "title": "Rows Loaded vs Rejected by Source",
+      "description": "Comparison of loaded vs rejected rows per source",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT source_name, sum(rows_loaded) as loaded, sum(rows_rejected) as rejected FROM ops.batch_ingestion_log GROUP BY source_name",
+          "format": "table",
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "Staging-Postgres"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "loaded" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "rejected" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "vertical",
+        "barWidth": 0.7,
+        "groupWidth": 0.7,
+        "showValue": "auto",
+        "stacking": "none",
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" },
+        "xTickLabelRotation": -45
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 10 }
+    }
+  ],
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "time": { "from": "now-7d", "to": "now" },
+  "timepicker": {},
+  "liveNow": false
+}

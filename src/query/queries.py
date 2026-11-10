@@ -40,6 +40,25 @@ AGG_SQL = [
     GROUP BY ALL
     """,
     "CREATE INDEX IF NOT EXISTS idx_fact_sale_txn ON fact_pharmacy_sale (sales_transaction_id)",
+    """CREATE OR REPLACE VIEW v_constellation_medicine AS
+       SELECT m.med_key, m.med_id, m.med_name, m.disease_category,
+              m.therapeutic_class, m.wholesale_price_usd,
+              COALESCE(s.total_sold, 0) AS total_sold,
+              COALESCE(s.total_revenue, 0) AS total_revenue,
+              COALESCE(d.total_forecast, 0) AS total_forecast,
+              COALESCE(d.total_unfulfilled, 0) AS total_unfulfilled
+       FROM dim_medicine m
+       LEFT JOIN (
+           SELECT med_key, sum(quantity_sold_packs) AS total_sold,
+                  sum(net_sales_amount_usd) AS total_revenue
+           FROM fact_pharmacy_sale GROUP BY 1
+       ) s ON s.med_key = m.med_key
+       LEFT JOIN (
+           SELECT med_key, sum(forecast_demand_packs) AS total_forecast,
+                  sum(unfulfilled_demand_packs) AS total_unfulfilled
+           FROM fact_hospital_demand GROUP BY 1
+       ) d ON d.med_key = m.med_key
+       WHERE m.is_current""",
 ]
 
 QUERIES = [
@@ -167,5 +186,119 @@ QUERIES = [
             JOIN dim_medicine m ON m.med_key = f.med_key
             JOIN dim_pharmacy ph ON ph.pharm_key = f.pharm_key
             WHERE f.sales_transaction_id = 'SALE-000250000'""",
+    },
+]
+
+# ── Fact Constellation Queries ────────────────────────────────────────
+# Cross-fact queries joining multiple star schemas through conformed
+# dimensions (dim_medicine, dim_date) — the "360° Inventory Intelligence"
+CONSTELLATION_QUERIES = [
+    {
+        "name": "C1_supply_demand_gap",
+        "base": """
+            WITH sales AS (
+                SELECT m.med_id, m.med_name, m.disease_category,
+                       m.therapeutic_class,
+                       sum(fs.quantity_sold_packs)    AS total_sold,
+                       sum(fs.net_sales_amount_usd)   AS total_revenue,
+                       round(100.0 * sum(fs.gross_margin_usd)
+                             / nullif(sum(fs.net_sales_amount_usd), 0), 2) AS margin_pct
+                FROM fact_pharmacy_sale fs
+                JOIN dim_medicine m ON m.med_key = fs.med_key
+                GROUP BY 1,2,3,4
+            ),
+            demand AS (
+                SELECT m.med_id,
+                       sum(fd.forecast_demand_packs)     AS total_forecast,
+                       sum(fd.unfulfilled_demand_packs)  AS total_unfulfilled,
+                       sum(fd.stockout_days)             AS total_stockout_days,
+                       round(avg(fd.service_level_pct), 2) AS avg_service_level
+                FROM fact_hospital_demand fd
+                JOIN dim_medicine m ON m.med_key = fd.med_key
+                GROUP BY 1
+            )
+            SELECT s.med_name, s.disease_category, s.therapeutic_class,
+                   s.total_sold, round(s.total_revenue, 2) AS total_revenue,
+                   s.margin_pct,
+                   d.total_forecast, d.total_unfulfilled,
+                   d.total_stockout_days, d.avg_service_level,
+                   round(s.total_sold::double
+                         / nullif(d.total_forecast, 0), 3) AS sell_through_ratio
+            FROM sales s
+            JOIN demand d ON s.med_id = d.med_id
+            ORDER BY d.total_unfulfilled DESC
+            LIMIT 20""",
+        "opt": None,
+    },
+    {
+        "name": "C2_regional_inventory_intelligence",
+        "base": """
+            WITH pharmacy_sales AS (
+                SELECT ph.region, d.year_month,
+                       sum(fs.net_sales_amount_usd) AS region_sales,
+                       sum(fs.quantity_sold_packs)   AS region_qty_sold
+                FROM fact_pharmacy_sale fs
+                JOIN dim_pharmacy ph ON ph.pharm_key = fs.pharm_key
+                JOIN dim_date d      ON d.date_key   = fs.sales_date_key
+                GROUP BY 1, 2
+            ),
+            hospital_demand AS (
+                SELECT h.region, d.year_month,
+                       sum(fd.forecast_demand_packs)    AS region_forecast,
+                       sum(fd.unfulfilled_demand_packs) AS region_unfulfilled,
+                       sum(fd.stockout_days)            AS region_stockout_days
+                FROM fact_hospital_demand fd
+                JOIN dim_hospital h ON h.hosp_key = fd.hosp_key
+                JOIN dim_date d     ON d.date_key = fd.demand_month_key
+                GROUP BY 1, 2
+            )
+            SELECT COALESCE(ps.region, hd.region)       AS region,
+                   COALESCE(ps.year_month, hd.year_month) AS year_month,
+                   round(ps.region_sales, 2) AS region_sales,
+                   ps.region_qty_sold,
+                   hd.region_forecast, hd.region_unfulfilled,
+                   hd.region_stockout_days,
+                   round(ps.region_qty_sold::double
+                         / nullif(hd.region_forecast, 0), 3) AS fulfillment_ratio
+            FROM pharmacy_sales ps
+            FULL OUTER JOIN hospital_demand hd
+                 ON ps.region = hd.region
+                AND ps.year_month = hd.year_month
+            WHERE COALESCE(ps.region, hd.region) IS NOT NULL
+            ORDER BY 1, 2""",
+        "opt": None,
+    },
+    {
+        "name": "C3_medicine_360_view",
+        "base": """
+            SELECT m.med_name, m.disease_category,
+                   m.wholesale_price_usd, m.retail_price_usd,
+                   ss.total_txns, round(ss.total_revenue, 2) AS total_revenue,
+                   ss.avg_margin_pct,
+                   ds.total_forecast,
+                   round(ds.avg_service_level, 2) AS avg_service_level,
+                   ds.total_stockout_days,
+                   round(ss.total_revenue
+                         / nullif(ds.total_forecast * m.wholesale_price_usd, 0)
+                         * 100, 2) AS revenue_capture_pct
+            FROM dim_medicine m
+            LEFT JOIN (
+                SELECT med_key, count(*) AS total_txns,
+                       sum(net_sales_amount_usd) AS total_revenue,
+                       round(100.0 * sum(gross_margin_usd)
+                             / nullif(sum(net_sales_amount_usd), 0), 2)
+                           AS avg_margin_pct
+                FROM fact_pharmacy_sale GROUP BY 1
+            ) ss ON ss.med_key = m.med_key
+            LEFT JOIN (
+                SELECT med_key,
+                       sum(forecast_demand_packs) AS total_forecast,
+                       avg(service_level_pct)     AS avg_service_level,
+                       sum(stockout_days)         AS total_stockout_days
+                FROM fact_hospital_demand GROUP BY 1
+            ) ds ON ds.med_key = m.med_key
+            WHERE m.is_current
+            ORDER BY ss.total_revenue DESC NULLS LAST""",
+        "opt": None,
     },
 ]

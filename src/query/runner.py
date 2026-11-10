@@ -4,7 +4,7 @@ from pathlib import Path
 import duckdb
 
 from src.query.logger import init_log, run_logged
-from src.query.queries import AGG_SQL, QUERIES
+from src.query.queries import AGG_SQL, QUERIES, CONSTELLATION_QUERIES
 
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/opt/airflow/data"))
 DB_PATH = str(DATA_DIR / "warehouse" / "sdi.duckdb")
@@ -26,8 +26,9 @@ def run_queries(repeats=3):
     init_log()
     con = duckdb.connect(DB_PATH, read_only=True)
     ok = failed = 0
+    all_queries = QUERIES + CONSTELLATION_QUERIES
     try:
-        for q in QUERIES:
+        for q in all_queries:
             for variant in ("base", "opt"):
                 sql = q.get(variant)
                 if not sql:
