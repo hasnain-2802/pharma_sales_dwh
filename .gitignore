@@ -1,0 +1,14 @@
+.env
+.venv/
+logs/*
+!logs/.gitkeep
+__pycache__/
+*.pyc
+data/duckdb/*.duckdb
+data/duckdb/*.wal
+data/landing/*
+data/archive/*
+data/rejected/*
+!data/*/.gitkeep
+data/warehouse/*.duckdb
+data/warehouse/*.wal
