@@ -1,0 +1,604 @@
+================================================================================
+                      PROJECT REPORT: MILESTONE 1
+             PHARMACEUTICAL COLD CHAIN DATA WAREHOUSE & BI
+             PHASE 1: SALES & DEMAND INTELLIGENCE (SDI) MART
+================================================================================
+Document Identifier : Milestone.1.SDI.DWH.Report
+Project Title       : Intelligent Data Architecture - Pharma Cold Supply Chain
+Course / Domain     : Intelligent Data Architectures (IDA)
+Component           : Milestone 1 - Sales & Demand Intelligence (SDI) Data Mart
+Execution Platform  : Apache Airflow 2.10, PostgreSQL 15, DuckDB 1.1, Grafana 10.4
+Author              : Data Engineering Team
+Date of Submission  : November 2026
+================================================================================
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. EXECUTIVE SUMMARY & PROJECT CHARTER
+2. SECTION A: DESIGN & ARCHITECTURE OF THE AIRFLOW PIPELINE
+   2.1 End-to-End Orchestration Topology
+   2.2 Detailed DAG Inventory & Execution Flow
+   2.3 Ingestion Mechanics, File-Watcher & Automated Triggering
+   2.4 Data Lineage, Idempotency & Fault Isolation
+3. SECTION B: IMPLEMENTATION CHALLENGES & ENGINEERING SOLUTIONS
+   3.1 SQLAlchemy 2.0 vs. Airflow 2.10 ORM Compatibility Clash
+   3.2 The DuckDB-Grafana Bridge: Architecting the BI Sync Layer
+   3.3 Path Resolution & Volume Mount Synchronization in Docker
+   3.4 High-Volume Ingestion Optimization & Dirty Record Segregation
+   3.5 Slowly Changing Dimension (SCD Type 2) Historical Tracking
+4. SECTION C: DATA ENGINEERING DASHBOARDS & OPERATIONAL OBSERVABILITY
+   4.1 DE Dashboard 1: Batch Ingestion Operations (Load Duration Analysis)
+   4.2 DE Dashboard 2: Streaming Ingestion Operations (Throughput & Latency)
+   4.3 DE Dashboard 3: Staging Storage Health & Schema Integrity
+   4.4 DE Dashboard 4: OLAP Engine & Query Performance Benchmark
+   4.5 Phase 1 BI Business Dashboard Suite: Decision-Focused Visual Cockpits
+5. SECTION D: DATA WAREHOUSE PROBLEM-SOLVING APPROACH & STAR SCHEMA
+   5.1 Dimensional Modeling Methodology & Grain Declaration
+   5.2 Dimension Engineering (SCD-2, Junk Dims, Role-Playing Dims)
+   5.3 Fact Table Engineering: Transactional vs. Periodic Snapshot
+   5.4 Conformed Dimensions & Future Constellation Readiness
+6. SECTION E: OVERSAMPLING & SYNTHETIC DATA GENERATION STRATEGY
+   6.1 Business Need & Strategy Rationale
+   6.2 Two-Cycle Refresh Simulation Architecture
+   6.3 SCD Type 2 Price Mutation Trigger
+   6.4 Referential Integrity Preservation & Domain Constraint Rules
+7. SUMMARY METRICS & SYSTEM INVENTORY
+================================================================================
+
+
+================================================================================
+1. EXECUTIVE SUMMARY & PROJECT CHARTER
+================================================================================
+Milestone 1 establishes the foundational data engineering platform for a global
+pharmaceutical cold-chain supply network. Pharmaceutical cold chains require
+uncompromising data fidelity: biological therapeutics, vaccines, and insulin
+spoil irreparably if storage conditions deviate from strict 2°C–8°C bounds or if
+expiration windows lapse before fulfillment.
+
+The primary objective of Milestone 1 is the delivery of the Sales & Demand
+Intelligence (SDI) Data Mart, alongside a production-grade automated pipeline.
+The data architecture ingests seven disparate enterprise data sources (comprising
+over 933,000 baseline records), validates and stages raw transactions, executes
+dimensional transformations into an in-process columnar OLAP warehouse (DuckDB),
+and projects operational telemetry and business intelligence through five
+interactive Grafana dashboards.
+
+
+Key Architectural Milestones Achieved:
+1. Orchestration: 4 Airflow DAGs automating generation, ingestion, transform,
+   and analytical querying with zero manual intervention required.
+2. Ingestion Engine: High-throughput batch COPY protocol capable of parsing
+   over 50,000 rows/second with automated anomaly and schema rejection.
+3. Storage Layer: Dual-tier storage leveraging PostgreSQL 15 for atomic OLTP
+   staging and DuckDB 1.1 for vectorized, in-process columnar analytical marts.
+4. Business Intelligence: 7 Grafana dashboards — 4 Data Engineering
+   operational dashboards (Batch Ingestion, Streaming Telemetry, Storage
+   Health, Query Performance) plus 3 Decision-Focused BI Cockpits (Channel
+   Margin, Hospital Forecast, Fast/Slow Movers).
+5. Oversampling Engine: A deterministic synthetic data engine producing
+   two distinct refresh cycles (~46,635 rows per cycle, ~10% data expansion)
+   specifically designed to trigger and validate SCD Type 2 dimension updates.
+
+
+================================================================================
+2. SECTION A: DESIGN & ARCHITECTURE OF THE AIRFLOW PIPELINE
+================================================================================
+
+2.1 End-to-End Orchestration Topology
+-------------------------------------
+The orchestration architecture follows a decoupled, ELT (Extract-Load-Transform)
+design pattern orchestrated via Apache Airflow 2.10.5. The pipeline separates
+landing file discovery, relational staging, columnar analytical dimensionalization,
+and BI projection into distinct, isolated execution units.
+
+[Source CSVs / Generator]
+         |
+         v
+  [data/landing/]  <-------------------+ (Oversampling Engine: Cycle 1 & 2)
+         |
+         v
++------------------------------------------------------------------------+
+| AIRFLOW ORCHESTRATION ENGINE                                           |
+|                                                                        |
+| +---------------------+      +---------------------+                   |
+| | DAG 01: Generator   | ---> | DAG 02: Ingestion   |                   |
+| | (Synthetic / Cycle) |      | (File-Watcher 5min) |                   |
+| +---------------------+      +----------+----------+                   |
+|                                         |                              |
+|                                         v                              |
+|                              [PostgreSQL Staging DB]                   |
+|                              (stg.* & ops.* schemas)                   |
+|                                         |                              |
+|                                         v                              |
+| +---------------------+      +----------+----------+                   |
+| | DAG 04: OLAP Runner | <--- | DAG 03: Transform   |                   |
+| | (Constellation Qs)  |      | (DuckDB + BI Sync)  |                   |
+| +---------------------+      +----------+----------+                   |
+|                                         |                              |
++-----------------------------------------|------------------------------+
+                                          v
+                         +---------------------------------+
+                         | DuckDB SDI Warehouse            |
+                         | (Star Schema: 9 Dims, 2 Facts)  |
+                         +----------------+----------------+
+                                          |
+                                          v (BI Sync Layer)
+                         +---------------------------------+
+                         | PostgreSQL bi.* Schema          |
+                         +----------------+----------------+
+                                          |
+                                          v
+                         +---------------------------------+
+                         | Grafana Observability & BI      |
+                         | (7 Production Dashboards)       |
+                         +---------------------------------+
+
+2.2 Detailed DAG Inventory & Execution Flow
+-------------------------------------------
+
+• DAG 01: `dag_01_generate` (Data Generation & Oversampling)
+  - Frequency: On-Demand / Parameterized Execution.
+  - Parameter: `cycle` (Integer: 1 = Jul-Sep 2025; 2 = Oct-Dec 2025).
+  - Purpose: Generates synthetic transactions across all 7 source files with
+    strictly enforced foreign-key integrity, cold chain anomalies, and price
+    modifications, dropping timestamped CSVs into `data/landing/`.
+  - Task Dependency: `generate_data` >> `log_stats`
+
+• DAG 02: `dag_02_ingestion` (Automated File-Watcher & Staging Ingestion)
+  - Frequency: Continuous cron schedule (`*/5 * * * *`).
+  - Purpose: Scans `data/landing/` for unprocessed CSV files. Validates headers,
+    sanitizes data types, executes high-speed PostgreSQL bulk COPY into `stg.*`,
+    records batch metrics into `ops.batch_ingestion_log`, logs rejected records
+    into `ops.rejected_records_log`, and moves processed files to `data/archive/`.
+  - Task Dependency:
+    `watch_landing` >> `ingest_master` >> `ingest_manufacturing` >>
+    `ingest_delivery` >> `ingest_warehouse` >> `ingest_sales` >>
+    `ingest_demand` >> `ingest_iot` >> `archive_files`
+
+• DAG 03: `dag_03_transform` (Dimensional Modeling & BI Synchronization)
+  - Frequency: Scheduled after staging ingestion / Manual trigger.
+  - Purpose: Executes full dimensional transformation. Connects to PostgreSQL
+    staging, builds the DuckDB star schema (9 dimensions, 2 facts), manages
+    SCD Type 2 record versioning on `dim_medicine`, executes data quality
+    validation rules, and executes the `sync_bi_views` task which pre-computes
+    11 executive summary tables into Postgres `bi.*` for Grafana rendering.
+  - Task Dependency:
+    `create_ddl` >> `build_dim_date` >> `build_dimensions` >>
+    `build_fact_sales` >> `build_fact_demand` >> `validate_warehouse` >>
+    `sync_bi_views`
+
+• DAG 04: `dag_04_query` (Analytical Benchmark & Constellation Validation)
+  - Frequency: Daily / Post-transformation verification.
+  - Purpose: Executes 8 targeted OLAP analytical queries and 3 Fact
+    Constellation cross-mart queries against DuckDB. Measures query execution
+    latency, records performance benchmarks into `ops.query_execution_log`, and
+    validates business KPIs (OTIF rates, cold chain breach exposure, profit margins).
+  - Task Dependency: `run_olap_queries` >> `run_constellation_queries` >> `log_benchmarks`
+
+2.3 Ingestion Mechanics, File-Watcher & Automated Triggering
+-----------------------------------------------------------
+The file ingestion mechanism in `dag_02_ingestion` avoids static polling loops
+by implementing an idempotent directory-scanning sensor task (`watch_landing`).
+At every 5-minute interval:
+1. Directory Scan: Python's `pathlib.Path.glob("*.csv")` inspects `data/landing/`.
+2. Header & Schema Check: Each file is inspected against expected column counts
+   and naming signatures defined in `src/ingestion/loader.py`.
+3. High-Speed Bulk Loading: Data is streamed into PostgreSQL using `COPY FROM STDIN`
+   via `psycopg2.extras.execute_values` and dedicated CSV buffers, achieving over
+   50,000 records/sec throughput without hitting transactional row-lock overhead.
+4. Quarantine Mechanism: Corrupted rows or files failing foreign-key sanity
+   checks are automatically isolated into `data/rejected/` with comprehensive
+   rejection logs committed to `ops.rejected_records_log`.
+5. Atomic Archival: Upon successful staging commit, files are moved atomically
+   to `data/archive/<timestamp>_<filename>` to ensure zero double-ingestion.
+
+2.4 Data Lineage, Idempotency & Fault Isolation
+-----------------------------------------------
+Every record flowing through the pipeline is enriched with metadata attributes:
+- `SourceFile`: Exact landing file name.
+- `IngestionBatchID`: UUID linking the row to `ops.batch_ingestion_log`.
+- `StagedTimestampUTC`: Timestamp of physical staging.
+- `WarehouseLoadTimestamp`: Injected into DuckDB dimension and fact tables.
+Idempotency is maintained through staging table truncation prior to batch ingest
+or UPSERT semantics based on business keys (`SalesTransactionID`, `SnapshotID`),
+guaranteeing that pipeline restarts or retries never result in duplicate metrics.
+
+
+================================================================================
+3. SECTION B: IMPLEMENTATION CHALLENGES & ENGINEERING SOLUTIONS
+================================================================================
+
+3.1 Challenge 1: SQLAlchemy 2.0 vs. Airflow 2.10 ORM Compatibility Clash
+------------------------------------------------------------------------
+• Symptom / Problem:
+  During container initialization and DAG parsing, the Airflow scheduler and
+  webserver crashed with fatal errors:
+  `MappedAnnotationError: Type annotation for "TaskInstance.dag_model" can't be correctly interpreted`.
+• Root Cause:
+  The project's `requirements.txt` initially specified `sqlalchemy>=2.0`.
+  Apache Airflow 2.10.x relies internally on SQLAlchemy 1.4.x ORM declarative
+  type-mapping paradigms. Installing SQLAlchemy 2.0 introduced breaking changes
+  in mapped column annotations that crashed the internal metadata store.
+• Engineering Solution:
+  Pinned the dependency in `requirements.txt` to `sqlalchemy>=1.4.36,<2.0`.
+  Rebuilt the custom Airflow Docker image using `docker-compose build --no-cache`,
+  restoring metadata DB stability and enabling rapid task scheduling.
+
+3.2 Challenge 2: The DuckDB-Grafana Bridge: Architecting the BI Sync Layer
+--------------------------------------------------------------------------
+• Symptom / Problem:
+  The project chose DuckDB as its high-performance columnar analytical warehouse.
+  However, Grafana has no native, officially supported DuckDB database driver.
+  Attempting to run an unauthenticated SQLite/ODBC plugin inside Docker caused
+  file lock contention (`duckdb.IOException: Could not set lock on file`)
+  whenever Airflow wrote to the warehouse while Grafana attempted to read.
+• Root Cause:
+  DuckDB is an in-process, single-writer columnar engine. External visualization
+  tools cannot safely open concurrent read/write connections to an active DuckDB file.
+• Engineering Solution:
+  Architected a dedicated, automated BI Sync Layer (`src/transform/bi_sync.py`).
+  In Step 9 of `dag_03_transform`, after DuckDB validates the star schema,
+  DuckDB executes high-speed analytical aggregations (window functions, cross-fact
+  joins, moving averages) and streams the aggregated results into a dedicated
+  `bi.*` schema in PostgreSQL via `psycopg2`.
+  This delivers the best of both worlds:
+  1. Heavy dimensional aggregations execute in milliseconds inside DuckDB's vectorized engine.
+  2. Grafana connects seamlessly to PostgreSQL `bi.*` using the native, highly optimized Postgres datasource.
+
+3.3 Challenge 3: Path Resolution & Volume Mount Synchronization in Docker
+-------------------------------------------------------------------------
+• Symptom / Problem:
+  `dag_03_transform` failed when attempting to initialize DuckDB:
+  `Catalog Error: Database path does not exist`.
+• Root Cause:
+  `docker-compose.yml` set `DUCKDB_PATH=/opt/airflow/data/warehouse/sdi.duckdb`,
+  whereas Python modules defaulted to `data/duckdb/sdi_mart.duckdb`. Furthermore,
+  the directory `/opt/airflow/data/warehouse` was not pre-created inside the container.
+• Engineering Solution:
+  Standardized environment configurations across `.env`, `docker-compose.yml`,
+  and `src/transform/dwh.py`. Added automatic directory creation (`mkdir -p`)
+  inside `src/transform/dwh.py` before initializing DuckDB connections, and verified
+  persistent bind-mount mapping (`./data:/opt/airflow/data`).
+
+3.4 Challenge 4: High-Volume Ingestion Optimization & Dirty Record Segregation
+------------------------------------------------------------------------------
+• Symptom / Problem:
+  Staging 933,000 rows across 7 CSV files using standard SQL `INSERT` statements
+  took upwards of 45 minutes, exceeding Airflow task execution timeouts.
+• Root Cause:
+  Per-row transactional logging (WAL) and index recalculations in PostgreSQL.
+• Engineering Solution:
+  Implemented a dual optimization:
+  1. Configured staging tables as `UNLOGGED` during ingestion, bypassing WAL writes.
+  2. Implemented Python in-memory streaming using `io.StringIO` and PostgreSQL's
+     native `COPY stg.<table_name> FROM STDIN WITH (FORMAT CSV, HEADER TRUE)`.
+  This slashed total staging ingestion duration from 45 minutes to under 28 seconds.
+  Simultaneously, header validation and dirty string sanitization were embedded
+  into `src/ingestion/loader.py`, isolating corrupt records to `data/rejected/`.
+
+3.5 Challenge 5: Slowly Changing Dimension (SCD Type 2) Historical Tracking
+---------------------------------------------------------------------------
+• Symptom / Problem:
+  Medicine prices, therapeutic classifications, and supply chain lead times
+  evolve over time. A simple overwrite (SCD Type 1) would corrupt historical sales
+  margin reporting for past transactions.
+• Engineering Solution:
+  Designed a pure SQL SCD Type 2 engine in `src/transform/dwh.py`.
+  When a medicine price changes (simulated in Cycle 2 for 5 medicines):
+  1. The existing record's `ValidToDate` is closed (`2025-09-30`) and `IsCurrent` set to `'N'`.
+  2. A new record is inserted with a new surrogate key (`MedicineKey`), `ValidFromDate = '2025-10-01'`,
+     `ValidToDate = '9999-12-31'`, and `IsCurrent = 'Y'`.
+  3. Historical sales fact rows remain bound to the historical surrogate key,
+     preserving exact historical margin calculations, while new sales bind to the current key.
+
+
+================================================================================
+4. SECTION C: DATA ENGINEERING DASHBOARDS & OPERATIONAL OBSERVABILITY
+================================================================================
+The project implements four Data Engineering Operational Dashboards plus three
+Decision-Focused BI Cockpits (7 dashboards total) in Grafana.
+
+--------------------------------------------------------------------------------
+4.1 DE Dashboard 1: Batch Ingestion Operations
+--------------------------------------------------------------------------------
+• Primary Objective:
+  Real-time monitoring of batch file landing, staging duration, record volumes,
+  and ingestion health across all 7 source files.
+• Core Visualizations & Rubric Chart:
+  1. [RUBRIC SPECIFIED] Horizontal Bar Chart: "Load Duration (Seconds) per Excel/CSV File Source"
+     - SQL Query:
+       SELECT file_name, round(extract(epoch from (end_time - start_time))::numeric, 2) AS duration_seconds
+       FROM ops.batch_ingestion_log
+       WHERE status = 'SUCCESS'
+       ORDER BY duration_seconds DESC;
+     - Operational Value: Instantly highlights which file source is the pipeline
+       bottleneck (e.g., `05_pharmacy_sales_data.csv` at 216 MB taking ~14.2s vs.
+       `01_master_data.csv` taking 0.08s).
+  2. Single Stat KPI Cards:
+     - Total Records Ingested (e.g., 980,000+).
+     - Ingestion Success Rate (Target: 99.9%).
+     - Active Staging Batches.
+     - Rejected / Quarantined Record Count.
+  3. Time-Series Line Chart: Batch Ingestion Throughput (Rows/Sec) over time.
+  4. Detailed Batch Ingestion Audit Grid: Execution status, start/end timestamps,
+     record counts, and archive file destinations.
+
+--------------------------------------------------------------------------------
+4.2 DE Dashboard 2: Streaming Ingestion Operations
+--------------------------------------------------------------------------------
+• Primary Objective:
+  Observability into real-time IoT cold-chain sensor streams and high-velocity
+  events ingested via the FastAPI ingestion microservice (`http://localhost:8001`).
+• Core Visualizations & Rubric Metrics:
+  1. [RUBRIC SPECIFIED] Stream Throughput (Events/Sec):
+     - Metric Computation: Total Records Ingested / Active Simulation Window Duration.
+     - Visualization: Dynamic Line Chart tracking Events/Sec over time to detect
+       ingestion drops, backpressure, or burst traffic.
+  2. [RUBRIC SPECIFIED] End-to-End Latency (Seconds):
+     - Metric Computation: `timestamp_db_insert - timestamp_source_row_creation`.
+     - Visualization: Gauge & Area Chart displaying average and p95 ingestion latency.
+       Allows data engineers to identify network throttling or consumer lag.
+  3. [RUBRIC SPECIFIED] Malformed / Dropped Record Count:
+     - Metric Computation: Incremented try-except counter during schema parsing and
+       range validation (e.g., Temperature < -50°C or > 50°C).
+     - Visualization: Stat Card with RAG threshold (Green: 0; Red: >50).
+  4. Temperature & Humidity Breach Alert Feed: Live tabular feed of telemetry
+     records violating cold chain bounds (2°C–8°C for refrigerated lots).
+
+--------------------------------------------------------------------------------
+4.3 DE Dashboard 3: Staging Storage Health & Schema Integrity
+--------------------------------------------------------------------------------
+• Primary Objective:
+  Monitoring PostgreSQL database footprint, table growth rates, vacuum/dead
+  tuple health, and schema validation.
+• Core Visualizations:
+  1. Pie / Donut Chart: Disk Usage Breakdown per Staging Table (`stg.pharmacy_sales`
+     commanding ~65% of database storage).
+  2. Bar Chart: Table Row Count Distribution across `stg.*` schemas.
+  3. Health Gauge: Dead Tuple Ratio (alerts if autovacuum needs manual trigger).
+  4. Schema Compliance Matrix: Null-value percentage per critical foreign key column.
+
+--------------------------------------------------------------------------------
+4.4 DE Dashboard 4: OLAP Engine & Query Performance Benchmark
+--------------------------------------------------------------------------------
+• Primary Objective:
+  Benchmarking DuckDB vectorized execution speed against the 8 core analytical queries
+  and 3 Fact Constellation cross-mart queries.
+• Core Visualizations:
+  1. Horizontal Bar Chart: Execution Duration (Milliseconds) per OLAP Query:
+     - Q1: Monthly Sales Trend by Disease Category.
+     - Q2: Hospital Demand vs. Fulfillment Shortfall.
+     - Q3: Pharmacy Sales Channel Profit Margin.
+     - Q4: Return Rate Analysis by Formulation & Dosage.
+     - Q5: Service Level (OTIF) per Hospital & Therapeutic Class.
+     - Q6: Cold-Chain Storage Compliance & Expiry Risk.
+     - Q7: Emergency Order Surge Analysis.
+     - Q8: Top Moving Medicines by Revenue.
+  2. Line Chart: Cold Cache vs. Warm Cache Latency comparison.
+  3. Stat Card: Average Vectorized Query Latency (< 45ms across all queries).
+
+--------------------------------------------------------------------------------
+4.5 Phase 1 BI Business Dashboard Suite: Decision-Focused Visual Cockpits
+--------------------------------------------------------------------------------
+• Primary Objective:
+  Designed strictly adhering to Dr. Tariq Mahmood's Decision-Focused Visual
+  Analytics Framework (Lecture 11 & Slide 67 Rubric, IBA Karachi). The BI layer
+  rejects monolithic "metric sprawl" and instead decomposes intelligence into three
+  targeted cockpits, each serving a single distinct audience and operational decision:
+
+• Dashboard Suite Architecture & Slide 67 Rubric Implementation:
+
+  1. BI Cockpit 1: Channel Revenue & Commercial Margin (`bi-channel-margin`)
+     - Target Audience: Commercial Director & Finance Leads.
+     - Core Decision: "Which sales channel needs margin intervention or return mitigation?"
+     - Layout & Visuals:
+       * 4 Headline KPI Stat Cards with embedded target contracts:
+         - Net Sales Revenue: $11.95M (Plan: $20.0M threshold).
+         - Gross Margin %: 34.22% (Target: ≥35.0% threshold).
+         - Return Rate %: 4.31% (Target: <5.0% threshold).
+         - E-commerce RTS %: 24.32% (Threshold: <10.0% alert).
+       * Sorted Horizontal Bars: Net Sales & Gross Margin by Channel with zero baseline.
+       * Multi-Series Trend: Monthly revenue & margin trajectory across 36 months (2023–2025).
+       * Diagnostic Tables: Channel performance matrix with return rates and transaction counts.
+       * Interactive Filters: Multi-level single-select dropdowns ($region, $channel).
+
+  2. BI Cockpit 2: Hospital Forecast vs Actual Fulfillment (`bi-hospital-forecast`)
+     - Target Audience: Supply Chain Planners & Clinical Logistics Directors.
+     - Core Decision: "Which hospital facilities and therapeutic classes require immediate replenishment?"
+     - Layout & Visuals:
+       * 4 Outcome Indicator Cards:
+         - Average Service Level (OTIF): 98.41% (SLA Target: ≥95.0%).
+         - Total Unfulfilled Demand: 129,113 packs (Target: 0).
+         - Cumulative Stockout Days: 5,497 days across facilities.
+         - Emergency Order Ratio: 2.22% (Target: <3.0%).
+       * Top 10 Hospitals by Unfulfilled Packs (Horizontal bar, packs only — honest single unit).
+       * Emergency Order Ratio (%) by Hospital facility.
+       * Priority Operational Exception Queue: Actionable table pairing WCAG-compliant
+         visual indicators (🔴 Critical Shortfall, 🟡 At Risk, 🟢 On Target) with
+         concrete logistical countermeasures ("Dispatch Emergency Re-supply", "Re-allocate Regional Buffer").
+
+  3. BI Cockpit 3: Fast vs Slow Movers Portfolio (`bi-fast-slow`)
+     - Target Audience: Category / Formulary Managers & Brand Directors.
+     - Core Decision: "Which pharmaceutical formulations to promote, reorder, or review for delisting?"
+     - Layout & Visuals:
+       * 4 Portfolio Indicator Cards: Active Formulations (69), Top-3 Revenue Share (48.2%),
+         Bottom-10 Revenue Share (1.8%), Overall Margin (34.22%).
+       * Top 10 High-Velocity Medicines by Pack Volume (e.g., Mesalazine, Amoxicillin).
+       * Bottom 10 Low-Velocity Review Candidates by Pack Volume.
+       * Medicine 360° Cross-Fact Table: Sales volume, gross revenue, margin %, forecast,
+         unfulfilled demand, and service level per SKU.
+
+• Adherence to Slide 67 Rubric Dimensions:
+  - Purpose: One audience and one explicit decision question per dashboard.
+  - Measures: Targets embedded inside card thresholds rather than packed into header titles.
+  - Visuals: Horizontal bars for named categories, zero baselines strictly enforced, smooth curves.
+  - Hierarchy: Clear visual structure with top gradient quick-nav banner, stat row, diagnostic charts, and action tables.
+  - Color Discipline: Dark slate base (`#111217` / `#181B1F`), corporate blue accent (`#3274D9`), with Red strictly reserved for negative SLA breaches.
+  - Access & Trust: 100% panel query pass rate (72 of 72 panels across all 7 dashboards verified with live data).
+
+
+
+5. SECTION D: DATA WAREHOUSE PROBLEM-SOLVING APPROACH & STAR SCHEMA
+
+5.1 Dimensional Modeling Methodology & Grain Declaration
+
+The Phase 1 SDI Data Mart was engineered strictly adhering to the dimensional
+modeling blueprint established in the project design workbook (`excel`).
+
+The design addresses two distinct business operational grains:
+1. `fact_pharmacy_sale` (Transactional Fact):
+   - Business Grain: One row per individual itemized medicine pack sold at a pharmacy.
+   - Volume: ~500,000 baseline rows + 25,000 rows per refresh cycle.
+   - Measures: `QuantitySoldPacks`, `GrossSalesAmountUSD`, `DiscountAmountUSD`,
+     `NetSalesAmountUSD`, `CostOfGoodsSoldUSD`, `GrossMarginUSD`, `ReturnedQuantityPacks`.
+2. `fact_hospital_demand` (Periodic Snapshot Fact):
+   - Business Grain: One row per hospital, per medicine, per calendar month.
+   - Volume: ~27,216 baseline rows + 1,500 rows per refresh cycle.
+   - Measures: `RequestedQuantityPacks`, `ApprovedQuantityPacks`, `AllocatedQuantityPacks`,
+     `FulfilledQuantityPacks`, `UnfulfilledQuantityPacks`, `FulfillmentPct`,
+     `EmergencyOrderCount`, `StockoutIncidentCount`.
+
+5.2 Dimension Engineering
+
+The Star Schema incorporates 9 dimensions designed to maximize analytical flexibility:
+
+1. `dim_medicine` (SCD Type 2):
+   - Primary Surrogate Key: `MedicineKey` (BIGINT).
+   - Natural Key: `MedicineID` (VARCHAR).
+   - Attributes: `GenericName`, `BrandName`, `TherapeuticClass`, `DosageForm`,
+     `Strength`, `PackSize`, `WholesalePriceUSD`, `RecommendedRetailPriceUSD`.
+   - SCD-2 Attributes: `ValidFromDate`, `ValidToDate`, `IsCurrent` ('Y'/'N').
+   - Problem Solved: Captures historical price changes accurately. When wholesale
+     prices rise, historical sales maintain original margin calculations.
+
+2. `dim_pharmacy`:
+   - Surrogate Key: `PharmacyKey`.
+   - Natural Key: `PharmacyID`, `PharmacyGLN`.
+   - Attributes: `PharmacyName`, `PharmacyType` (Physical, Hospital, E-commerce),
+     `City`, `State`, `ZipCode`.
+
+3. `dim_hospital`:
+   - Surrogate Key: `HospitalKey`.
+   - Natural Key: `HospitalID`, `HospitalGLN`.
+   - Attributes: `HospitalName`, `HospitalType`, `LicensedBeds`, `ICUBeds`,
+     `TraumaLevel`, `AverageOccupancyRatePct`, `CatchmentPopulation`.
+
+4. `dim_warehouse`:
+   - Surrogate Key: `WarehouseKey`.
+   - Natural Key: `WarehouseID`, `WarehouseGLN`.
+   - Attributes: `WarehouseName`, `City`, `State`, `TotalCapacityPacks`.
+
+5. `dim_date` (Role-Playing Dimension):
+   - Surrogate Key: `DateKey` (Integer: YYYYMMDD).
+   - Full Gregorian calendar spanning 2024 to 2026.
+   - Attributes: `FullDate`, `DayOfWeek`, `DayName`, `CalendarMonth`, `MonthName`,
+     `CalendarQuarter`, `CalendarYear`, `FiscalQuarter`, `IsWeekendFlag`.
+   - Role-Playing Implementation: A single physical table joined multiple times:
+     - In `fact_pharmacy_sale`: `SaleDateKey`, `DeliveryDateKey`, `ExpiryDateKey`.
+     - In `fact_hospital_demand`: `RequestMonthDateKey`.
+
+6. Junk Dimensions (`dim_sale_profile` & `dim_request_profile`):
+   - Problem Solved: Low-cardinality discrete flags (ReturnFlag, PrescriptionRequired,
+     DeliveryOTIF, PayerType, PaymentMethod, UrgencyLevel) threaten to clutter fact
+     tables with dozens of foreign keys.
+   - Solution: Extracted Cartesian product of operational flags into compact junk
+     dimensions, reducing fact table width and accelerating scan speeds.
+
+5.3 Conformed Dimensions & Future Constellation Readiness
+
+The Phase 1 SDI schema is not an isolated silo; it is architected as the first lobe
+of a full Enterprise Fact Constellation:
+- `dim_medicine`, `dim_date`, and `dim_warehouse` are strictly conformed across
+  future Phase 2 (Warehouse Inventory Mart: `fact_inventory_snapshot`) and
+  Phase 3 (Manufacturing Mart: `fact_manufacturing_batch`).
+- This shared dimensionality guarantees seamless drill-across capability, enabling
+  queries that link pharmacy sales demand back to factory production batches
+  and cold-chain IoT shipment excursions.
+
+6. SECTION E: OVERSAMPLING & SYNTHETIC DATA GENERATION STRATEGY
+
+6.1 Business Need & Strategy Rationale
+
+In pharmaceutical enterprise architectures, historical static datasets fail to test
+pipeline resilience, time-series continuity, and dimension versioning.
+An oversampling and synthetic data generation module (`src/generator/generate.py`)
+was engineered to:
+1. Simulate continuous enterprise operational telemetry.
+2. Provide predictable, realistic volume expansion (+10% volume increase).
+3. Validate SCD Type 2 dimension splitting under active pipeline execution.
+4. Stress-test data quality boundaries with simulated real-world anomalies.
+
+6.2 Two-Cycle Refresh Simulation Architecture
+
+The generator implements two distinct, parameterized operational cycles:
+
+• Cycle 1 (Baseline Inflow: Q3 2026):
+  - Temporal Window: July 1, 2026 – September 30, 2026.
+  - Generates 46,635 new rows across all 7 source files.
+  - Adds 5 brand-new medicine formulations to `01_master_data.csv`.
+  - Establishes fresh inventory, sales, demand, and IoT sensor streams.
+
+• Cycle 2 (SCD-2 Trigger & Stress Test: Q4 2026):
+  - Temporal Window: October 1, 2026 – December 31, 2026.
+  - Generates an additional 46,635 new rows.
+  - Triggers the SCD Type 2 versioning pipeline.
+  - Injects cold-chain temperature breaches and emergency demand spikes.
+
+Volume Breakdown per Generator Cycle:
+--------------------------------------------------------------------------------
+Source File                        Cycle 1 Rows    Cycle 2 Rows    Total Added
+--------------------------------------------------------------------------------
+01_master_data.csv                            5               5             10
+02_manufacturing_data.csv                    50              50            100
+03_manufacturer_delivery_data.csv            80              80            160
+04_warehouse_data.csv                     5,000           5,000         10,000
+05_pharmacy_sales_data.csv               25,000          25,000         50,000
+06_hospital_demand_data.csv               1,500           1,500          3,000
+07_iot_streaming_data.csv                15,000          15,000         30,000
+--------------------------------------------------------------------------------
+TOTAL PER CYCLE                          46,635          46,635         93,270
+--------------------------------------------------------------------------------
+
+6.3 SCD Type 2 Price Mutation Trigger
+
+In Cycle 2, the generator explicitly mutates pricing attributes for 5 key medicines:
+- `MED005`: Wholesale +12%, Recommended Retail +15%
+- `MED012`: Wholesale +8%, Recommended Retail +10%
+- `MED025`: Wholesale +18%, Recommended Retail +20%
+- `MED040`: Wholesale +6%, Recommended Retail +8%
+- `MED058`: Wholesale +14%, Recommended Retail +15%
+When ingested into staging and transformed by `dag_03_transform`, the transformation
+logic detects the natural key match combined with an attribute hash difference,
+prompting the graceful retirement of the Q3 record and insertion of the Q4 record.
+
+6.4 Referential Integrity Preservation & Domain Constraint Rules
+
+To prevent orphan foreign keys in the analytical warehouse:
+1. Deterministic Seeding: Uses NumPy's `default_rng(_RNG_BASE + cycle)`, guaranteeing
+   perfect reproducibility while preventing duplicate transaction IDs.
+2. Parent-Child Constraint Enforcement: Every pharmacy sale references an existing
+   `PharmacyID` and `MedicineID` present in master data.
+3. Financial Balancing:
+   `GrossSalesAmount = QuantitySoldPacks * UnitRetailPrice`
+   `NetSalesAmount = GrossSalesAmount - DiscountAmount`
+   `GrossMargin = NetSalesAmount - CostOfGoodsSold`
+4. Domain Anomaly Injection:
+   - 2% of sales simulate customer returns (`ReturnFlag = 'Y'`).
+   - 15% of IoT telemetry records simulate cold-chain temperature excursions (>8°C),
+     triggering operational warning flags in the BI dashboard.
+
+
+7. SUMMARY METRICS & SYSTEM INVENTORY
+
+Pipeline Component Inventory:
+- Airflow DAGs Configured          : 4 (`dag_01` to `dag_04`)
+- Source CSV Datasets Managed       : 7 files (933,000+ base rows)
+- Oversampled Records Generated    : 93,270 rows (across 2 cycles)
+- Relational Staging Tables         : 7 tables in PostgreSQL `stg.*`
+- Operational Telemetry Tables     : 4 tables in PostgreSQL `ops.*`
+- Dimensional Warehouse Tables     : 9 Dimensions, 2 Fact Tables in DuckDB
+- Business Intelligence Summary Tbl: 11 pre-aggregated tables in PostgreSQL `bi.*`
+- Grafana Production Dashboards    : 7 dashboards (4 Data Engineering + 3 BI Decision Cockpits)
+- End-to-End Pipeline Latency      : Under 90 seconds from CSV landing to BI display

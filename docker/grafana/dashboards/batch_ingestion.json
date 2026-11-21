@@ -1,12 +1,17 @@
 {
   "id": null,
   "uid": "batch-ingestion",
-  "title": "Batch Ingestion Metrics",
-  "description": "Monitoring dashboard for batch ingestion pipeline metrics",
-  "tags": ["pharma", "ingestion", "batch"],
+  "title": "Batch Ingestion Operations",
+  "description": "Pharmaceutical Cold Supply Chain \u2014 Scheduled Loads, File Ingestion, and Staging Health",
+  "tags": [
+    "pharma",
+    "ingestion",
+    "batch",
+    "operations"
+  ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 3,
   "refresh": "30s",
   "editable": true,
   "fiscalYearStartMonth": 0,
@@ -15,171 +20,870 @@
   "panels": [
     {
       "id": 1,
-      "type": "barchart",
-      "title": "Load Duration by Source",
-      "description": "Average ingestion duration per source (seconds)",
+      "type": "text",
+      "title": "Operational Overview & Staging Parameters",
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "html",
+        "content": "\n<div style=\"display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #181B1F 0%, #1e2228 100%); padding: 10px 18px; border-radius: 6px; border-left: 4px solid #3274D9; margin-bottom: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);\">\n  <div>\n    <div style=\"font-size: 16px; font-weight: 600; color: #FFFFFF; letter-spacing: 0.3px;\">Batch Ingestion & SLA Health Operations</div>\n    <div style=\"font-size: 12px; color: #8E8E93; margin-top: 2px;\"><b>Primary Decision:</b> Monitor pipeline runtime, loaded volume, and exception rates across 7 Excel/CSV sources &nbsp;|&nbsp; <b>Audience:</b> Data Engineering & SRE &nbsp;|&nbsp; <b>Coverage:</b> 2023\u20132026 &nbsp;|&nbsp; <b>Auto-Refresh:</b> 1m</div>\n  </div>\n  <div style=\"display: flex; gap: 8px;\">\n    <a href=\"/d/bi-channel-margin/channel-revenue-and-margin\" style=\"background: #22262E; color: #61AFFE; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3274D9;\">\ud83d\udcca Channel Margin</a>\n    <a href=\"/d/bi-hospital-forecast/hospital-forecast-vs-actual\" style=\"background: #22262E; color: #49DA9A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #299C46;\">\ud83c\udfe5 Hospital Demand</a>\n    <a href=\"/d/bi-fast-slow/fast-vs-slow-movers\" style=\"background: #22262E; color: #FADE2A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #EAB839;\">\u26a1 Fast / Slow</a>\n    <a href=\"/d/batch-ingestion/batch-ingestion-operations\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\udce6 Batch DE</a>\n    <a href=\"/d/streaming-ingestion/streaming-ingestion-operations\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\udce1 Streaming DE</a>\n    <a href=\"/d/storage-staging/storage-and-staging-health\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\uddc4\ufe0f Storage DE</a>\n    <a href=\"/d/query-performance/analytical-query-performance\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\u26a1 Query DE</a>\n  </div>\n</div>\n"
+      },
+      "transparent": true
+    },
+    {
+      "id": 100,
+      "type": "row",
+      "title": "Executive Ingestion KPIs",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 3
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Scheduled Runs",
+      "description": "Total executed ingestion batch runs recorded in operational logs",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
       "targets": [
         {
-          "rawSql": "SELECT source_name, avg(duration_sec) as avg_duration FROM ops.batch_ingestion_log WHERE status='SUCCESS' GROUP BY source_name ORDER BY avg_duration DESC",
+          "rawSql": "SELECT count(*) AS \"Runs\" FROM ops.batch_ingestion_log",
           "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
-          }
+          "refId": "A"
         }
       ],
       "fieldConfig": {
         "defaults": {
+          "unit": "short",
           "color": {
-            "mode": "palette-classic"
+            "mode": "fixed",
+            "fixedColor": "#5794F2"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 0,
+        "y": 4
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Completed Runs",
+      "description": "Total batches successfully loaded into staging without errors",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT count(*) AS \"Completed\" FROM ops.batch_ingestion_log WHERE status = 'SUCCESS'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#73BF69"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 3,
+        "y": 4
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Failed Runs",
+      "description": "Batches resulting in validation failure or unhandled exception",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT count(*) AS \"Failed\" FROM ops.batch_ingestion_log WHERE status = 'FAILED'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
           },
-          "unit": "s",
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 5 },
-              { "color": "red", "value": 15 }
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#E02F44",
+                "value": 1
+              }
             ]
           }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 6,
+        "y": 4
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "On-Time %",
+      "description": "Percentage of batch loads completing within target processing thresholds (< 60s)",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT round(100.0 * count(CASE WHEN duration_sec < 60.0 AND status = 'SUCCESS' THEN 1 END) / nullif(count(*), 0), 1) AS \"On-Time %\" FROM ops.batch_ingestion_log",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E02F44",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 90
+              },
+              {
+                "color": "#73BF69",
+                "value": 95
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 9,
+        "y": 4
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Avg Duration",
+      "description": "Mean execution duration across all completed source file ingestions",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT round(avg(duration_sec), 2) AS \"Mean Duration (s)\" FROM ops.batch_ingestion_log WHERE status = 'SUCCESS'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#5794F2"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 12,
+        "y": 4
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Staged Records",
+      "description": "Total cumulative records committed into staging schemas",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT sum(rows_loaded) AS \"Staged Records\" FROM ops.batch_ingestion_log WHERE status = 'SUCCESS'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3274D9"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 15,
+        "y": 4
+      }
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Active Sources",
+      "description": "Count of distinct enterprise upstream flat-file data sources monitored",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT count(DISTINCT source_name) AS \"Sources\" FROM ops.batch_ingestion_log",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#20B2AA"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 18,
+        "y": 4
+      }
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Quarantine %",
+      "description": "Percentage of landed records quarantined by integrity check validation",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT round(100.0 * coalesce(sum(rows_rejected), 0) / nullif(sum(rows_read), 0), 2) AS \"Reject %\" FROM ops.batch_ingestion_log",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 0.5
+              },
+              {
+                "color": "#E02F44",
+                "value": 2.0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 21,
+        "y": 4
+      }
+    },
+    {
+      "id": 105,
+      "type": "row",
+      "title": "Throughput & Secondary Operational Telemetry",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      }
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Ingestion Throughput",
+      "description": "Bulk stream ingestion rate across active file loads (rows per second)",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT round(sum(rows_loaded) / nullif(sum(duration_sec), 0), 0) AS \"Throughput (rec/s)\" FROM ops.batch_ingestion_log WHERE status = 'SUCCESS'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#5794F2"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 0,
+        "y": 9
+      }
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "Files Ingested",
+      "description": "Distinct flat files and real-time streams committed to staging",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT count(DISTINCT file_name) AS \"Files\" FROM ops.batch_ingestion_log",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3274D9"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 6,
+        "y": 9
+      }
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "P95 Batch Duration",
+      "description": "95th percentile load latency across all file payloads",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT round(percentile_cont(0.95) within group (order by duration_sec)::numeric, 2) AS \"P95 (s)\" FROM ops.batch_ingestion_log WHERE status = 'SUCCESS'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#EAB839"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 12,
+        "y": 9
+      }
+    },
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "Quarantined Packets",
+      "description": "Total bad / dirty records diverted to stg.rejected_records",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT coalesce(sum(rows_rejected), 0) AS \"Quarantined\" FROM ops.batch_ingestion_log",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#E02F44"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 18,
+        "y": 9
+      }
+    },
+    {
+      "id": 101,
+      "type": "row",
+      "title": "Ingestion Performance & Bottleneck Profiling",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      }
+    },
+    {
+      "id": 10,
+      "type": "bargauge",
+      "title": "Load Duration by Source File: Pharmacy sales represents highest ingestion processing duration",
+      "description": "Horizontal bar chart showing average load duration in seconds per source file. Starts strictly at zero baseline.",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT source_name AS \"Source File\", round(avg(duration_sec), 2) AS \"Average Duration (Seconds)\" FROM ops.batch_ingestion_log WHERE status = 'SUCCESS' GROUP BY source_name ORDER BY \"Average Duration (Seconds)\" DESC",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {},
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Average Duration (Seconds)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#3274D9",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 10,
+        "valueMode": "color"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      }
+    },
+    {
+      "id": 11,
+      "type": "bargauge",
+      "title": "Staged Volume Distribution by Source System",
+      "description": "Total cumulative record volume ingested per enterprise source system",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT source_name AS \"Source System\", sum(rows_loaded) AS \"Records Staged\" FROM ops.batch_ingestion_log WHERE status = 'SUCCESS' GROUP BY source_name ORDER BY \"Records Staged\" DESC",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {},
+          "min": 0
         },
         "overrides": []
       },
       "options": {
         "orientation": "horizontal",
-        "barWidth": 0.7,
-        "groupWidth": 0.7,
-        "showValue": "always",
-        "stacking": "none",
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "single" },
-        "xTickLabelRotation": 0
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 10,
+        "valueMode": "color"
       },
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 0 }
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      }
     },
     {
-      "id": 2,
-      "type": "stat",
-      "title": "Total Rows Processed",
-      "description": "Sum of all rows successfully loaded",
+      "id": 102,
+      "type": "row",
+      "title": "Throughput Trends & Operational Advisory",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      }
+    },
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "Records Ingested Over Time (Batch Runs)",
+      "description": "Temporal volume committed into staging tables ordered chronologically",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
       "targets": [
         {
-          "rawSql": "SELECT sum(rows_loaded) as total_rows FROM ops.batch_ingestion_log WHERE status='SUCCESS'",
+          "rawSql": "SELECT start_ts AS time, rows_loaded AS \"Rows Ingested\" FROM ops.batch_ingestion_log WHERE status = 'SUCCESS' ORDER BY 1",
           "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
-          }
+          "refId": "A"
         }
       ],
       "fieldConfig": {
         "defaults": {
+          "unit": "short",
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#3274D9"
           },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "blue", "value": null }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto"
-      },
-      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 }
-    },
-    {
-      "id": 3,
-      "type": "gauge",
-      "title": "Batch Success Rate %",
-      "description": "Percentage of batches completed successfully",
-      "datasource": {
-        "type": "postgres",
-        "uid": "Staging-Postgres"
-      },
-      "targets": [
-        {
-          "rawSql": "SELECT round(100.0 * count(*) FILTER (WHERE status='SUCCESS') / count(*), 2) as success_rate FROM ops.batch_ingestion_log",
-          "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 12,
+            "axisSoftMin": 0,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "gradientMode": "opacity",
+            "showPoints": "auto",
+            "pointSize": 4
           }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 80 },
-              { "color": "green", "value": 95 }
-            ]
-          },
-          "min": 0,
-          "max": 100,
-          "unit": "percent"
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "orientation": "auto"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
-      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 }
+      "gridPos": {
+        "h": 9,
+        "w": 14,
+        "x": 0,
+        "y": 23
+      }
     },
     {
-      "id": 4,
+      "id": 21,
+      "type": "text",
+      "title": "Batch Ingestion Advisory & Bottleneck Diagnostics",
+      "gridPos": {
+        "h": 9,
+        "w": 10,
+        "x": 14,
+        "y": 23
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### Ingestion Health & Engineering Insights\n\n- **Longest Processing Source:** `05_pharmacy_sales_data.csv`  \n  *Observation:* 500,000 baseline rows loaded in 43.1s (~11,600 rec/sec) via PostgreSQL streaming COPY protocol.\n\n- **Second Largest Source:** `07_iot_streaming_data.csv`  \n  *Observation:* 293,425 baseline events committed in 21.2s (~13,850 rec/sec). Paced real-time streaming runs alongside at 100 events/sec.\n\n- **Quarantine & Dirty Records:** `data/rejected/`  \n  *Status:* Header integrity, non-negative retail price, and valid ISO date checks actively divert corrupt records into `stg.rejected_records`.\n\n- **Recommended Action:**  \n  Maintain table unlogged mode during initial backfills; schedule autovacuum analyze post-transformation."
+      }
+    },
+    {
+      "id": 103,
+      "type": "row",
+      "title": "Batch Execution & Audit Log",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      }
+    },
+    {
+      "id": 30,
       "type": "table",
-      "title": "Recent Batch Loads",
-      "description": "Last 20 batch ingestion records",
+      "title": "Detailed Batch Execution Log",
+      "description": "Chronological audit grid of all file ingestion batches, execution latencies, and row commits",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
       "targets": [
         {
-          "rawSql": "SELECT file_name, source_name, start_ts, duration_sec, rows_loaded, rows_rejected, status FROM ops.batch_ingestion_log ORDER BY start_ts DESC LIMIT 20",
+          "rawSql": "SELECT log_id AS \"Log ID\", source_name AS \"Source\", file_name AS \"File Ingested\", start_ts AS \"Start Time\", duration_sec AS \"Duration (s)\", rows_loaded AS \"Rows Loaded\", rows_rejected AS \"Rows Rejected\", status AS \"Execution Status\", CASE WHEN duration_sec < 50.0 THEN 'On Time' ELSE 'Review Required' END AS \"SLA Status\" FROM ops.batch_ingestion_log ORDER BY log_id DESC LIMIT 25",
           "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
-          }
+          "refId": "A"
         }
       ],
       "fieldConfig": {
@@ -190,13 +894,19 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "#73BF69",
+                "value": null
+              }
             ]
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "status" },
+            "matcher": {
+              "id": "byName",
+              "options": "Execution Status"
+            },
             "properties": [
               {
                 "id": "custom.cellOptions",
@@ -207,7 +917,55 @@
               {
                 "id": "mappings",
                 "value": [
-                  { "type": "value", "options": { "SUCCESS": { "color": "green", "text": "SUCCESS" }, "FAILED": { "color": "red", "text": "FAILED" } } }
+                  {
+                    "type": "value",
+                    "options": {
+                      "SUCCESS": {
+                        "color": "#73BF69",
+                        "text": "Success"
+                      },
+                      "FAILED": {
+                        "color": "#E02F44",
+                        "text": "Failed"
+                      },
+                      "PARTIAL": {
+                        "color": "#EAB839",
+                        "text": "Partial"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SLA Status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "On Time": {
+                        "color": "#73BF69",
+                        "text": "On Time"
+                      },
+                      "Review Required": {
+                        "color": "#EAB839",
+                        "text": "Review Required"
+                      }
+                    }
+                  }
                 ]
               }
             ]
@@ -217,115 +975,51 @@
       "options": {
         "showHeader": true,
         "cellHeight": "sm",
-        "footer": { "show": false }
-      },
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 5 }
-    },
-    {
-      "id": 5,
-      "type": "barchart",
-      "title": "Rows Loaded per Source",
-      "description": "Total rows loaded and rejected by source",
-      "datasource": {
-        "type": "postgres",
-        "uid": "Staging-Postgres"
-      },
-      "targets": [
-        {
-          "rawSql": "SELECT source_name, sum(rows_loaded) as total_loaded, sum(rows_rejected) as total_rejected FROM ops.batch_ingestion_log GROUP BY source_name ORDER BY total_loaded DESC",
-          "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
-          }
+        "footer": {
+          "show": false
         }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "unit": "short"
-        },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "total_loaded" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "total_rejected" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
-            ]
-          }
-        ]
       },
-      "options": {
-        "orientation": "vertical",
-        "barWidth": 0.7,
-        "groupWidth": 0.7,
-        "showValue": "auto",
-        "stacking": "normal",
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi" },
-        "xTickLabelRotation": -45
-      },
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 10 }
-    },
-    {
-      "id": 6,
-      "type": "timeseries",
-      "title": "Ingestion Over Time",
-      "description": "Rows loaded over time by source",
-      "datasource": {
-        "type": "postgres",
-        "uid": "Staging-Postgres"
-      },
-      "targets": [
-        {
-          "rawSql": "SELECT start_ts as time, rows_loaded, source_name FROM ops.batch_ingestion_log WHERE status='SUCCESS' ORDER BY start_ts",
-          "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth",
-            "fillOpacity": 20,
-            "pointSize": 5,
-            "showPoints": "auto",
-            "spanNulls": false,
-            "lineWidth": 2,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "scaleDistribution": { "type": "linear" }
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "desc" }
-      },
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 15 }
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      }
     }
   ],
-  "templating": { "list": [] },
-  "annotations": { "list": [] },
-  "time": { "from": "now-7d", "to": "now" },
-  "timepicker": {},
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "time": {
+    "from": "now-3y",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d",
+      "90d",
+      "1y",
+      "3y",
+      "5y"
+    ]
+  },
   "liveNow": false
 }

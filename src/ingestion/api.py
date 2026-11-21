@@ -142,6 +142,8 @@ def stream_iot(readings: List[IoTReading]):
         """)
         for r in readings:
             try:
+                if not r.SensorReadingID or r.TemperatureC < -40.0 or r.TemperatureC > 90.0:
+                    raise ValueError(f"Malformed telemetry: SensorReadingID='{r.SensorReadingID}', Temp={r.TemperatureC}C")
                 vals = (
                     r.SensorReadingID, r.DeviceID, r.DeviceType, r.AssetType,
                     r.ShipmentID, r.SSCC18, r.WarehouseID, r.StorageZoneID,
@@ -166,6 +168,16 @@ def stream_iot(readings: List[IoTReading]):
             except Exception as e:
                 rejected += 1
                 errors.append(str(e)[:200])
+                try:
+                    r_dict = r.dict() if hasattr(r, 'dict') else r.model_dump()
+                    cur.execute(
+                        "INSERT INTO stg.rejected_records "
+                        "(batch_id, source_name, file_name, reject_reason, row_data) "
+                        "VALUES (%s, %s, %s, %s, %s)",
+                        (batch_id, "07_iot_streaming_data", "api_stream", str(e)[:200], json.dumps(r_dict))
+                    )
+                except Exception as inner_e:
+                    errors.append(f"insert_reject_fail: {inner_e}"[:100])
         raw.commit()
     except Exception as e:
         raw.rollback()

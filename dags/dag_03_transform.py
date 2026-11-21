@@ -53,8 +53,13 @@ def transform():
         from src.transform import dwh
         return dwh.validate()
 
+    @task
+    def sync_bi_views():
+        from src.transform.bi_sync import sync_bi_views
+        return sync_bi_views()
+
     (init_schema() >> extract_staging() >> dim_medicine_scd2() >> dims_other()
-     >> fact_sale() >> fact_demand() >> commit_batches() >> validate())
+     >> fact_sale() >> fact_demand() >> commit_batches() >> validate() >> sync_bi_views())
 
 
 transform()

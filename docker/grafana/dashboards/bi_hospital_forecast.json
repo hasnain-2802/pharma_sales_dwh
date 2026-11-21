@@ -1,0 +1,765 @@
+{
+  "id": null,
+  "uid": "bi-hospital-forecast",
+  "title": "Hospital Forecast vs Actual",
+  "description": "Decision: Which hospitals and medicines need fulfillment action?",
+  "tags": [
+    "pharma",
+    "bi",
+    "hospital",
+    "forecast"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "title": "Channel Revenue & Margin",
+      "type": "link",
+      "url": "/d/bi-channel-margin/channel-revenue-margin",
+      "icon": "dashboard",
+      "tooltip": "Back to commercial view"
+    },
+    {
+      "title": "Fast vs Slow Movers",
+      "type": "link",
+      "url": "/d/bi-fast-slow/fast-vs-slow-movers",
+      "icon": "dashboard",
+      "tooltip": "Drill into medicine velocity"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "region",
+        "type": "query",
+        "label": "Region",
+        "datasource": {
+          "type": "postgres",
+          "uid": "Staging-Postgres"
+        },
+        "query": "SELECT DISTINCT region FROM bi.hospital_demand WHERE region IS NOT NULL ORDER BY 1",
+        "multi": false,
+        "includeAll": true,
+        "allValue": "ALL",
+        "current": {
+          "text": "All",
+          "value": "ALL"
+        },
+        "refresh": 1
+      },
+      {
+        "name": "hospital",
+        "type": "query",
+        "label": "Hospital",
+        "datasource": {
+          "type": "postgres",
+          "uid": "Staging-Postgres"
+        },
+        "query": "SELECT DISTINCT hosp_name FROM bi.hospital_demand WHERE ('$region' = 'ALL' OR region = '$region') ORDER BY 1",
+        "multi": false,
+        "includeAll": true,
+        "allValue": "ALL",
+        "current": {
+          "text": "All",
+          "value": "ALL"
+        },
+        "refresh": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "html",
+        "content": "\n<div style=\"display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #181B1F 0%, #1e2228 100%); padding: 10px 18px; border-radius: 6px; border-left: 4px solid #3274D9; margin-bottom: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);\">\n  <div>\n    <div style=\"font-size: 16px; font-weight: 600; color: #FFFFFF; letter-spacing: 0.3px;\">Hospital Demand & Fulfillment OTIF Intelligence</div>\n    <div style=\"font-size: 12px; color: #8E8E93; margin-top: 2px;\"><b>Primary Decision:</b> Which hospital facilities and therapeutic classes require immediate replenishment &nbsp;|&nbsp; <b>Audience:</b> Supply Chain Operations & Planners &nbsp;|&nbsp; <b>Coverage:</b> 2023\u20132026 &nbsp;|&nbsp; <b>Auto-Refresh:</b> 1m</div>\n  </div>\n  <div style=\"display: flex; gap: 8px;\">\n    <a href=\"/d/bi-channel-margin/channel-revenue-and-margin\" style=\"background: #22262E; color: #61AFFE; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3274D9;\">\ud83d\udcca Channel Margin</a>\n    <a href=\"/d/bi-hospital-forecast/hospital-forecast-vs-actual\" style=\"background: #22262E; color: #49DA9A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #299C46;\">\ud83c\udfe5 Hospital Demand</a>\n    <a href=\"/d/bi-fast-slow/fast-vs-slow-movers\" style=\"background: #22262E; color: #FADE2A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #EAB839;\">\u26a1 Fast / Slow</a>\n    <a href=\"/d/batch-ingestion/batch-ingestion-operations\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\udce6 Batch DE</a>\n    <a href=\"/d/streaming-ingestion/streaming-ingestion-operations\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\udce1 Streaming DE</a>\n    <a href=\"/d/storage-staging/storage-and-staging-health\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\uddc4\ufe0f Storage DE</a>\n    <a href=\"/d/query-performance/analytical-query-performance\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\u26a1 Query DE</a>\n  </div>\n</div>\n"
+      },
+      "transparent": true
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Avg Service Level",
+      "description": "Target: \u2265 95%. On-Time In-Full average across all hospitals",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT avg_service_level AS \"value\" FROM bi.kpi_summary",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E02F44",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 90
+              },
+              {
+                "color": "#73BF69",
+                "value": 95
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 2
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Unfulfilled Packs",
+      "description": "Target: 0. Total packs demanded but not fulfilled",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT total_unfulfilled_packs AS \"value\" FROM bi.kpi_summary",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 50000
+              },
+              {
+                "color": "#E02F44",
+                "value": 100000
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 2
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Total Stockout Days",
+      "description": "Target: 0. Cumulative days any facility had zero stock",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT total_stockout_days AS \"value\" FROM bi.kpi_summary",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 1000
+              },
+              {
+                "color": "#E02F44",
+                "value": 5000
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 2
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Emergency Demand %",
+      "description": "Target: < 3%. Emergency packs \u00f7 total requested \u00d7 100",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT emergency_demand_pct AS \"value\" FROM bi.kpi_summary",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 3
+              },
+              {
+                "color": "#E02F44",
+                "value": 5
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 2
+      }
+    },
+    {
+      "id": 10,
+      "type": "barchart",
+      "title": "Top 10 Hospitals by Unfulfilled Packs",
+      "description": "Hospitals with the highest unfulfilled demand. Units: packs only.",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT hosp_name AS \"Hospital\", total_unfulfilled AS \"Unfulfilled Packs\", round(avg_service_level::numeric, 1) AS \"Service Level %\" FROM bi.hospital_demand WHERE ('$region' = 'ALL' OR region = '$region') AND ('$hospital' = 'ALL' OR hosp_name = '$hospital') ORDER BY total_unfulfilled DESC LIMIT 10",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#E02F44"
+          },
+          "custom": {}
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Service Level %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "tooltip": false,
+                  "viz": true,
+                  "legend": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "horizontal",
+        "barWidth": 0.65,
+        "showValue": "always",
+        "stacking": "none",
+        "legend": {
+          "displayMode": "hidden"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "xTickLabelRotation": 0,
+        "xField": "Hospital"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      }
+    },
+    {
+      "id": 11,
+      "type": "barchart",
+      "title": "Emergency Order Ratio by Hospital (%)",
+      "description": "Percentage of demand submitted as emergency orders per facility",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT hosp_name AS \"Hospital\", emergency_pct AS \"Emergency %\" FROM bi.emergency_ratio WHERE ('$region' = 'ALL' OR region = '$region') ORDER BY emergency_pct DESC LIMIT 10",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 3
+              },
+              {
+                "color": "#E02F44",
+                "value": 5
+              }
+            ]
+          },
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "barWidth": 0.65,
+        "showValue": "always",
+        "stacking": "none",
+        "legend": {
+          "displayMode": "hidden"
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "xTickLabelRotation": 0,
+        "xField": "Hospital"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      }
+    },
+    {
+      "id": 20,
+      "type": "barchart",
+      "title": "Unfulfilled Demand by Therapeutic Class",
+      "description": "Top therapeutic classes by unfulfilled packs \u2014 highlights clinical vulnerability",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT CASE WHEN therapeutic_class IS NULL OR therapeutic_class = '' THEN 'Unclassified' ELSE therapeutic_class END AS \"Therapeutic Class\", unfulfilled AS \"Unfulfilled Packs\" FROM bi.unfulfilled_by_class ORDER BY unfulfilled DESC LIMIT 10",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#FF780A"
+          },
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "barWidth": 0.65,
+        "showValue": "always",
+        "stacking": "none",
+        "legend": {
+          "displayMode": "hidden"
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "xTickLabelRotation": 0,
+        "xField": "Therapeutic Class"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      }
+    },
+    {
+      "id": 21,
+      "type": "table",
+      "title": "Hospital Detail",
+      "description": "Full hospital metrics with RAG status on service level",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT hosp_name AS \"Hospital\", region AS \"Region\", size_band AS \"Size\", round(avg_service_level::numeric, 1) AS \"Service Level %\", total_unfulfilled AS \"Unfulfilled Packs\", total_stockout_days AS \"Stockout Days\", total_emergency_packs AS \"Emergency Packs\", round(emergency_pct::numeric, 1) AS \"Emergency %\" FROM bi.hospital_demand WHERE ('$region' = 'ALL' OR region = '$region') AND ('$hospital' = 'ALL' OR hosp_name = '$hospital') ORDER BY avg_service_level ASC",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Service Level %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#E02F44",
+                      "value": null
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 90
+                    },
+                    {
+                      "color": "#73BF69",
+                      "value": 95
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 17
+      }
+    },
+    {
+      "id": 30,
+      "type": "table",
+      "title": "Priority Action Queue",
+      "description": "Hospitals \u00d7 Therapeutic Classes ranked by worst service level. Red = Critical (< 90%), Amber = At Risk (90\u201395%), Green = On Target (\u2265 95%)",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT s.hosp_name AS \"Hospital\", CASE WHEN s.therapeutic_class IS NULL OR s.therapeutic_class = '' THEN 'Unclassified' ELSE s.therapeutic_class END AS \"Therapeutic Class\", round(s.avg_service_level::numeric, 1) AS \"Service Level %\", CASE WHEN s.avg_service_level < 90 THEN '\ud83d\udd34 Critical' WHEN s.avg_service_level < 95 THEN '\ud83d\udfe1 At Risk' ELSE '\ud83d\udfe2 On Target' END AS \"Status\", s.unfulfilled AS \"Unfulfilled Packs\", s.stockout_days AS \"Stockout Days\", CASE WHEN s.avg_service_level < 85 THEN 'Dispatch Emergency Re-supply' WHEN s.avg_service_level < 90 THEN 'Re-allocate Regional Buffer' WHEN s.avg_service_level < 95 THEN 'Review Lead Time & Reorder' ELSE 'Maintain Standard Flow' END AS \"Recommended Action\" FROM bi.service_level_detail s JOIN bi.hospital_demand h ON h.hosp_name = s.hosp_name WHERE ('$region' = 'ALL' OR h.region = '$region') AND ('$hospital' = 'ALL' OR s.hosp_name = '$hospital') ORDER BY s.avg_service_level ASC LIMIT 20",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Service Level %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#E02F44",
+                      "value": null
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 90
+                    },
+                    {
+                      "color": "#73BF69",
+                      "value": 95
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      }
+    },
+    {
+      "id": 99,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "*KPI Definitions: Service Level = Consumed \u00f7 Forecast \u00d7 100 | Unfulfilled = Forecast \u2212 Consumed (packs) | Emergency % = Emergency Packs \u00f7 Requested \u00d7 100 | Source: bi.kpi_summary, bi.hospital_demand, bi.service_level_detail*"
+      },
+      "transparent": true
+    }
+  ],
+  "annotations": {
+    "list": []
+  },
+  "time": {
+    "from": "now-3y",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d",
+      "90d",
+      "1y",
+      "3y",
+      "5y"
+    ]
+  },
+  "liveNow": false
+}

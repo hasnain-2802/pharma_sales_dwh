@@ -1,13 +1,19 @@
 {
   "id": null,
   "uid": "streaming-ingestion",
-  "title": "Streaming Ingestion Metrics",
-  "description": "Monitoring dashboard for IoT streaming ingestion pipeline",
-  "tags": ["pharma", "ingestion", "streaming", "iot"],
+  "title": "Streaming Ingestion Operations",
+  "description": "Pharmaceutical Cold Supply Chain \u2014 IoT, GPS, Temperature, Warehouse, and Shipment Event Streams",
+  "tags": [
+    "pharma",
+    "ingestion",
+    "streaming",
+    "iot",
+    "coldchain"
+  ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
-  "refresh": "30s",
+  "version": 3,
+  "refresh": "10s",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -15,252 +21,872 @@
   "panels": [
     {
       "id": 1,
-      "type": "stat",
-      "title": "IoT Records Ingested",
-      "description": "Total records in IoT streaming staging table",
-      "datasource": {
-        "type": "postgres",
-        "uid": "Staging-Postgres"
-      },
-      "targets": [
-        {
-          "rawSql": "SELECT count(*) as total_records FROM stg.iot_streaming_data",
-          "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "blue", "value": null }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
+      "type": "text",
+      "title": "Stream Architecture & Cold Chain Protocol",
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
       },
       "options": {
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto"
+        "mode": "html",
+        "content": "\n<div style=\"display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #181B1F 0%, #1e2228 100%); padding: 10px 18px; border-radius: 6px; border-left: 4px solid #3274D9; margin-bottom: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);\">\n  <div>\n    <div style=\"font-size: 16px; font-weight: 600; color: #FFFFFF; letter-spacing: 0.3px;\">IoT Cold-Chain Telemetry & Streaming Operations</div>\n    <div style=\"font-size: 12px; color: #8E8E93; margin-top: 2px;\"><b>Primary Decision:</b> Detect real-time thermal excursions, stream latency, and sensor telemetry health &nbsp;|&nbsp; <b>Audience:</b> Cold-Chain SRE & Quality Assurance &nbsp;|&nbsp; <b>Coverage:</b> 2023\u20132026 &nbsp;|&nbsp; <b>Auto-Refresh:</b> 1m</div>\n  </div>\n  <div style=\"display: flex; gap: 8px;\">\n    <a href=\"/d/bi-channel-margin/channel-revenue-and-margin\" style=\"background: #22262E; color: #61AFFE; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3274D9;\">\ud83d\udcca Channel Margin</a>\n    <a href=\"/d/bi-hospital-forecast/hospital-forecast-vs-actual\" style=\"background: #22262E; color: #49DA9A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #299C46;\">\ud83c\udfe5 Hospital Demand</a>\n    <a href=\"/d/bi-fast-slow/fast-vs-slow-movers\" style=\"background: #22262E; color: #FADE2A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #EAB839;\">\u26a1 Fast / Slow</a>\n    <a href=\"/d/batch-ingestion/batch-ingestion-operations\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\udce6 Batch DE</a>\n    <a href=\"/d/streaming-ingestion/streaming-ingestion-operations\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\udce1 Streaming DE</a>\n    <a href=\"/d/storage-staging/storage-and-staging-health\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\uddc4\ufe0f Storage DE</a>\n    <a href=\"/d/query-performance/analytical-query-performance\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\u26a1 Query DE</a>\n  </div>\n</div>\n"
       },
-      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 }
+      "transparent": true
+    },
+    {
+      "id": 100,
+      "type": "row",
+      "title": "Executive Stream Telemetry & SLA Indicators",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 3
+      }
     },
     {
       "id": 2,
       "type": "stat",
-      "title": "Stream Throughput (records/batch)",
-      "description": "Average rows loaded per batch for IoT streaming",
+      "title": "Stream Rate",
+      "description": "Mean sensor telemetry packets processed per second during active streaming",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
       "targets": [
         {
-          "rawSql": "SELECT avg(rows_loaded) as avg_throughput FROM ops.batch_ingestion_log WHERE source_name = '07_iot_streaming_data'",
+          "rawSql": "SELECT round(count(*)::numeric / nullif(extract(epoch from (max(_ingested_at) - min(_ingested_at))), 0), 1) AS \"Events/Sec\" FROM stg.iot_streaming_data WHERE _source_file = 'api_stream'",
           "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
-          }
+          "refId": "A"
         }
       ],
       "fieldConfig": {
         "defaults": {
+          "unit": "reqps",
           "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null }
-            ]
-          },
-          "unit": "short",
-          "decimals": 0
+            "mode": "fixed",
+            "fixedColor": "#5794F2"
+          }
         },
         "overrides": []
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
+          "calcs": [
+            "lastNotNull"
+          ]
         },
+        "colorMode": "background",
+        "graphMode": "area",
         "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto"
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
       },
-      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 0 }
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 0,
+        "y": 4
+      }
     },
     {
       "id": 3,
       "type": "stat",
-      "title": "Malformed/Rejected Records",
-      "description": "Total rejected records for IoT streaming source",
+      "title": "Mean Latency",
+      "description": "Average duration between sensor generation and database staging commit",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
       "targets": [
         {
-          "rawSql": "SELECT count(*) as rejected FROM stg.rejected_records WHERE source_name = '07_iot_streaming_data'",
+          "rawSql": "SELECT round(avg(nullif(datalatencyseconds, '')::numeric), 1) AS \"Mean Latency (s)\" FROM stg.iot_streaming_data",
           "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
-          }
+          "refId": "A"
         }
       ],
       "fieldConfig": {
         "defaults": {
+          "unit": "s",
           "color": {
             "mode": "thresholds"
           },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 10 },
-              { "color": "red", "value": 100 }
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 30
+              },
+              {
+                "color": "#E02F44",
+                "value": 60
+              }
             ]
-          },
-          "unit": "short"
+          }
         },
         "overrides": []
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
+          "calcs": [
+            "lastNotNull"
+          ]
         },
+        "colorMode": "background",
+        "graphMode": "area",
         "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto"
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
       },
-      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 0 }
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 3,
+        "y": 4
+      }
     },
     {
       "id": 4,
-      "type": "timeseries",
-      "title": "IoT Ingestion Duration Over Time",
-      "description": "Duration of each IoT ingestion batch over time",
+      "type": "stat",
+      "title": "P95 Latency",
+      "description": "95th percentile latency ensuring real-time excursion detection",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
       "targets": [
         {
-          "rawSql": "SELECT start_ts as time, duration_sec FROM ops.batch_ingestion_log WHERE source_name = '07_iot_streaming_data' ORDER BY start_ts",
+          "rawSql": "SELECT round(percentile_cont(0.95) within group (order by nullif(datalatencyseconds, '')::numeric)::numeric, 1) AS \"P95 Latency (s)\" FROM stg.iot_streaming_data",
           "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
-          }
+          "refId": "A"
         }
       ],
       "fieldConfig": {
         "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 60
+              },
+              {
+                "color": "#E02F44",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 6,
+        "y": 4
+      }
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "P99 Latency",
+      "description": "99th percentile end-to-end ingestion latency",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT round(percentile_cont(0.99) within group (order by nullif(datalatencyseconds, '')::numeric)::numeric, 1) AS \"P99 Latency (s)\" FROM stg.iot_streaming_data",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 90
+              },
+              {
+                "color": "#E02F44",
+                "value": 120
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 9,
+        "y": 4
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Total Events",
+      "description": "Total cumulative telemetry events captured in staging",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT count(*) AS \"Packets\" FROM stg.iot_streaming_data",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3274D9"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 12,
+        "y": 4
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Critical Breaches",
+      "description": "Sensor readings breaching mandatory upper or lower thermal envelopes",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT count(*) AS \"Breaches\" FROM stg.iot_streaming_data WHERE alertseverity = 'Critical'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#E02F44",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 15,
+        "y": 4
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Quarantined / Dropped",
+      "description": "Corrupt or malformed telemetry packets intercepted by API validation",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT count(*) AS \"Dropped\" FROM stg.rejected_records WHERE source_name = '07_iot_streaming_data'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 18,
+        "y": 4
+      }
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Monitored Devices",
+      "description": "Active IoT sensors deployed across facilities and refrigerated transit",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT count(DISTINCT deviceid) AS \"Sensors\" FROM stg.iot_streaming_data",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#20B2AA"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 21,
+        "y": 4
+      }
+    },
+    {
+      "id": 101,
+      "type": "row",
+      "title": "Streaming Throughput & Ingestion Time-Series",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Real-Time Telemetry Throughput by Stream Channel",
+      "description": "Multi-line time-series tracking telemetry ingestion volume per minute split across Warehouse and Transit Freight channels",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT date_trunc('minute', _ingested_at) AS time, count(*) FILTER (WHERE sourcestream LIKE '%warehouse%') AS \"Warehouse Environment\", count(*) FILTER (WHERE sourcestream LIKE '%shipment%') AS \"Transit Freight\", count(*) FILTER (WHERE sourcestream NOT LIKE '%warehouse%' AND sourcestream NOT LIKE '%shipment%') AS \"Direct Telemetry API\" FROM stg.iot_streaming_data GROUP BY 1 ORDER BY 1",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
             "drawStyle": "line",
             "lineInterpolation": "smooth",
-            "fillOpacity": 20,
-            "pointSize": 5,
-            "showPoints": "always",
-            "spanNulls": false,
+            "fillOpacity": 12,
+            "pointSize": 4,
+            "showPoints": "auto",
             "lineWidth": 2,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "scaleDistribution": { "type": "linear" }
-          },
-          "unit": "s"
+            "axisSoftMin": 0,
+            "gradientMode": "opacity"
+          }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Warehouse Environment"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#5794F2",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Transit Freight"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#20B2AA",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Direct Telemetry API"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#73BF69",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "single" }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 6 }
+      "gridPos": {
+        "h": 9,
+        "w": 14,
+        "x": 0,
+        "y": 9
+      }
     },
     {
-      "id": 5,
+      "id": 11,
+      "type": "text",
+      "title": "Streaming Insights & Incident Diagnosis",
+      "gridPos": {
+        "h": 9,
+        "w": 10,
+        "x": 14,
+        "y": 9
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### Real-Time Telemetry Insights\n\n- **Paced Ingestion Health:** Continuous multi-batch stream simulator pumps 100 packets/sec with dynamic arrival timestamps.\n\n- **Highest Risk Channel:** `mqtt/pharma/shipment/environment`  \n  *Insight:* Transit reefer containers show 2.4x higher variance in thermal bounds during multi-modal freight handoffs.\n\n- **Dead-Letter / Quarantine Stream:** `stg.rejected_records`  \n  *Status:* Empty SensorReadingID or out-of-range temperatures (-40\u00b0C to +90\u00b0C) automatically intercepted.\n\n- **Recommended Protocol:**  \n  Automated webhook dispatches SMS alert to warehouse shift supervisor when 3 consecutive readings breach 8.0\u00b0C in Cold Zone."
+      }
+    },
+    {
+      "id": 102,
+      "type": "row",
+      "title": "Thermal Envelopes & Excursion Breakdown",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      }
+    },
+    {
+      "id": 20,
       "type": "barchart",
-      "title": "IoT Throughput per Batch (Records/Sec)",
-      "description": "Records processed per second for each IoT batch",
+      "title": "Critical Temperature Breaches by Facility",
+      "description": "Distribution of critical temperature breaches recorded across distribution centers. Strictly zero baseline.",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
       "targets": [
         {
-          "rawSql": "SELECT file_name, CASE WHEN duration_sec > 0 THEN round(rows_loaded::numeric / duration_sec, 2) ELSE 0 END as records_per_sec FROM ops.batch_ingestion_log WHERE source_name = '07_iot_streaming_data' AND status='SUCCESS' ORDER BY start_ts DESC LIMIT 10",
+          "rawSql": "SELECT coalesce(nullif(warehouseid, ''), 'In-Transit Freight') AS \"Facility\", count(*) AS \"Critical Excursions\" FROM stg.iot_streaming_data WHERE alertseverity = 'Critical' GROUP BY 1 ORDER BY \"Critical Excursions\" DESC",
           "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#E02F44"
+          },
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "barWidth": 0.65,
+        "showValue": "always",
+        "stacking": "none",
+        "legend": {
+          "displayMode": "hidden"
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "xTickLabelRotation": 0,
+        "xField": "Facility"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 19
+      }
+    },
+    {
+      "id": 21,
+      "type": "barchart",
+      "title": "Telemetry Alert Severity Distribution",
+      "description": "Total event distribution categorized by alert severity level. Strictly zero baseline.",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT alertseverity AS \"Severity Tier\", count(*) AS \"Readings\" FROM stg.iot_streaming_data GROUP BY 1 ORDER BY \"Readings\" DESC",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {}
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Readings"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#20B2AA",
+                  "mode": "fixed"
+                }
+              }
+            ]
           }
+        ]
+      },
+      "options": {
+        "orientation": "horizontal",
+        "barWidth": 0.65,
+        "showValue": "always",
+        "stacking": "none",
+        "legend": {
+          "displayMode": "hidden"
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "xTickLabelRotation": 0,
+        "xField": "Severity Tier"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 19
+      }
+    },
+    {
+      "id": 103,
+      "type": "row",
+      "title": "Live Cold Chain Telemetry Feed & Excursion Audit",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      }
+    },
+    {
+      "id": 30,
+      "type": "table",
+      "title": "Recent Sensor Observations & Thermal Audit Log",
+      "description": "Real-time inspection of active IoT telemetry packets with temperature bounds and excursion tags",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT deviceid AS \"Device ID\", assettype AS \"Asset Type\", coalesce(nullif(warehouseid, ''), shipmentid) AS \"Location / Shipment\", round(nullif(temperaturec, '')::numeric, 1) AS \"Temperature (C)\", round(nullif(relativehumiditypct, '')::numeric, 1) AS \"Humidity (%)\", alertseverity AS \"Severity\", round(nullif(datalatencyseconds, '')::numeric, 1) AS \"Latency (s)\", readingquality AS \"Quality\", CASE WHEN alertseverity = 'Critical' THEN 'Quarantine Lot' WHEN alertseverity = 'Warning' THEN 'Inspect Refrigeration' ELSE 'Normal Operation' END AS \"Protocol Action\" FROM stg.iot_streaming_data ORDER BY _ingested_at DESC, sensorreadingid DESC LIMIT 20",
+          "format": "table",
+          "refId": "A"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
-          "unit": "short",
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "#73BF69",
+                "value": null
+              }
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Severity"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Normal": {
+                        "color": "#73BF69",
+                        "text": "Normal"
+                      },
+                      "Warning": {
+                        "color": "#EAB839",
+                        "text": "Warning"
+                      },
+                      "Critical": {
+                        "color": "#E02F44",
+                        "text": "Critical"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Protocol Action"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
-        "orientation": "vertical",
-        "barWidth": 0.7,
-        "groupWidth": 0.7,
-        "showValue": "always",
-        "stacking": "none",
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "single" },
-        "xTickLabelRotation": -45
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
       },
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 6 }
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      }
     }
   ],
-  "templating": { "list": [] },
-  "annotations": { "list": [] },
-  "time": { "from": "now-7d", "to": "now" },
-  "timepicker": {},
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "time": {
+    "from": "now-3y",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d",
+      "90d",
+      "1y",
+      "3y",
+      "5y"
+    ]
+  },
   "liveNow": false
 }

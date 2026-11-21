@@ -1,0 +1,372 @@
+================================================================================
+                       ENTERPRISE DATA DICTIONARY
+             PHARMACEUTICAL COLD CHAIN DATA WAREHOUSE & BI
+             PHASE 1: SALES & DEMAND INTELLIGENCE (SDI) MART
+================================================================================
+Document Identifier : DATA_DICTIONARY_PHASE_1_SDI
+Scope               : Source Files, Staging Schemas, Dimensional Warehouse, BI
+Classification      : Controlled Technical Specification
+Storage Engines     : CSV Flat Files, PostgreSQL 15 (Relational), DuckDB 1.1 (OLAP)
+================================================================================
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+PART 1: LANDING & SOURCE DATASETS (7 ENTERPRISE CSV FILES)
+PART 2: RELATIONAL STAGING SCHEMA (POSTGRESQL stg.*)
+PART 3: DATA ENGINEERING OPERATIONAL SCHEMAS (POSTGRESQL ops.*)
+PART 4: COLUMNAR DIMENSIONAL WAREHOUSE SCHEMA (DUCKDB SDI MART)
+   4.1 Dimension Tables (9 Dimensions including SCD Type 2 & Junk Dims)
+   4.2 Fact Tables (Transactional & Periodic Snapshot Grains)
+PART 5: BUSINESS INTELLIGENCE AGGREGATE SCHEMA (POSTGRESQL bi.*)
+================================================================================
+
+
+================================================================================
+PART 1: LANDING & SOURCE DATASETS (7 ENTERPRISE CSV FILES)
+================================================================================
+
+--------------------------------------------------------------------------------
+1.1 File: 01_master_data.csv (ERP Product Master)
+--------------------------------------------------------------------------------
+Description     : Golden master catalog containing pharmaceutical drug formulations,
+                  storage temperature envelopes, and wholesale/retail pricing.
+Grain           : One row per unique medicine product SKU / formulation version.
+Baseline Rows   : 63 rows (+5 in Cycle 1, +5 updated in Cycle 2).
+
+Columns:
+1.  MedicineID                    VARCHAR(10)   PRIMARY KEY. System identifier (e.g., 'MED001').
+2.  GTIN14                        VARCHAR(14)   Global Trade Item Number barcode identifier.
+3.  GenericName                   VARCHAR(100)  Non-proprietary international chemical name.
+4.  BrandName                     VARCHAR(100)  Commercial proprietary brand name.
+5.  DiseaseCategory               VARCHAR(50)   Clinical classification (e.g., Oncology, Diabetes).
+6.  TherapeuticClass              VARCHAR(50)   Pharmacological class (e.g., Immunosuppressant).
+7.  DosageForm                    VARCHAR(30)   Formulation (e.g., Vial, Prefilled Syringe, Tablet).
+8.  Strength                      VARCHAR(30)   Active dosage strength (e.g., 100mg/5mL).
+9.  RouteOfAdministration         VARCHAR(30)   Administration method (e.g., Intravenous, Oral).
+10. PackSize                      INTEGER       Number of primary units contained per carton/pack.
+11. BaseUnitOfMeasure             VARCHAR(20)   Standard unit ('pack', 'vial').
+12. PrescriptionClass             VARCHAR(20)   Regulatory tier ('Prescription', 'OTC').
+13. ControlledMedicineFlag        CHAR(1)       'Y' if narcotic/scheduled; else 'N'.
+14. ColdChainFlag                 CHAR(1)       'Y' if requires refrigerated supply chain; else 'N'.
+15. StorageMinTempC               NUMERIC(4,1)  Minimum allowed ambient temperature in Celsius.
+16. StorageMaxTempC               NUMERIC(4,1)  Maximum allowed ambient temperature in Celsius.
+17. MaxHumidityPct                NUMERIC(4,1)  Maximum permissible relative humidity percentage.
+18. ShelfLifeMonths               INTEGER       Standard shelf life longevity from production date.
+19. MinimumRemainingShelfLifeDays INTEGER       Minimum threshold days acceptable for hospital receipt.
+20. PrimarySupplierID             VARCHAR(10)   Foreign key to primary Active Pharmaceutical Ingredient vendor.
+21. PrimaryPlantID                VARCHAR(10)   Manufacturing site ID (e.g., 'PLT01').
+22. ManufacturingLeadTimeDays     INTEGER       Factory production elapsed days.
+23. StandardBatchSizePacks        INTEGER       Standard industrial run output in packs.
+24. SafetyStockDays               INTEGER       Mandatory inventory reserve days buffer.
+25. ReorderReviewCycleDays        INTEGER       Periodic review frequency in days.
+26. UnitManufacturingCostUSD      NUMERIC(10,2) Industrial cost of goods to produce one pack.
+27. WholesalePriceUSD             NUMERIC(10,2) Price charged to distributor/hospital (SCD-2 tracked).
+28. RecommendedRetailPriceUSD     NUMERIC(10,2) Suggested commercial retail price (SCD-2 tracked).
+29. ProductStatus                 VARCHAR(20)   Operational lifecycle ('Active', 'Discontinued').
+30. EffectiveFromDate             DATE          Validity start date.
+31. SourceSystem                  VARCHAR(30)   Originating ERP subsystem ('ERP_PRODUCT_MASTER').
+
+--------------------------------------------------------------------------------
+1.2 File: 02_manufacturing_data.csv (MES & QMS Batch Records)
+--------------------------------------------------------------------------------
+Description     : Manufacturing batch records, yield metrics, quality testing, and release dates.
+Grain           : One row per factory production batch order.
+Baseline Rows   : 561 rows (+50 rows per cycle).
+Key Columns     : ManufacturingOrderID, ProductionBatchID, MedicineID, PlantID, PlannedStartDate,
+                  PlannedCompletionDate, ActualCompletionDate, PlannedQuantityPacks,
+                  ActualQuantityPacks, RejectedQuantityPacks, ReleasedQuantityPacks,
+                  YieldPct, QualityTestStatus, ExpiryDate, TotalManufacturingCostUSD.
+
+--------------------------------------------------------------------------------
+1.3 File: 03_manufacturer_delivery_data.csv (TMS Inbound Shipments)
+--------------------------------------------------------------------------------
+Description     : Inbound logistics records tracking freight carriers moving finished
+                  batches from manufacturing plants to regional distribution centers.
+Grain           : One row per shipment line.
+Baseline Rows   : 1,120 rows (+80 rows per cycle).
+Key Columns     : ShipmentID, CarrierID, OriginPlantID, DestinationWarehouseID,
+                  DispatchTimestampUTC, DeliveryTimestampUTC, DeliveryStatus, ColdChainBreachFlag.
+
+--------------------------------------------------------------------------------
+1.4 File: 04_warehouse_data.csv (WMS Daily Inventory Snapshots)
+--------------------------------------------------------------------------------
+Description     : Daily inventory counts, bin allocations, quarantine reserves, and picking stats.
+Grain           : One row per warehouse, per lot, per day.
+Baseline Rows   : 112,184 rows (+5,000 rows per cycle).
+Key Columns     : InventorySnapshotID, SnapshotDate, WarehouseID, MedicineID, WarehouseLotID,
+                  OpeningQuantityPacks, ReceivedQuantityPacks, ShippedQuantityPacks,
+                  ClosingQuantityPacks, StockoutFlag, NearExpiryFlag, FEFOComplianceFlag.
+
+--------------------------------------------------------------------------------
+1.5 File: 05_pharmacy_sales_data.csv (POS Dispensation Transactions)
+--------------------------------------------------------------------------------
+Description     : Point-of-sale retail transactions across physical pharmacies, hospital
+                  pharmacies, and digital health e-commerce fulfillment channels.
+Grain           : One row per dispensed medicine item.
+Baseline Rows   : 500,000 rows (+25,000 rows per cycle).
+Key Columns     :
+- SalesTransactionID             : VARCHAR(20)  Unique invoice line item transaction ID.
+- SalesDate                      : DATE         Date of commercial dispensation.
+- SalesTimestampUTC              : TIMESTAMP    Precise audit timestamp.
+- SalesChannel                   : VARCHAR(30)  Physical Pharmacy, Hospital Pharmacy, E-commerce.
+- PharmacyID                     : VARCHAR(10)  Dispensing retail outlet identifier.
+- PharmacyGLN                    : VARCHAR(13)  GS1 Global Location Number.
+- PharmacyCity / State           : VARCHAR(50)  Geographic location.
+- MedicineID                     : VARCHAR(10)  SKU dispensed.
+- QuantitySoldPacks              : INTEGER      Pack quantity purchased.
+- UnitRetailPriceUSD             : NUMERIC(10,2) Gross retail unit charge.
+- GrossSalesAmountUSD            : NUMERIC(10,2) Quantity * UnitRetailPrice.
+- DiscountAmountUSD              : NUMERIC(10,2) Deductions applied.
+- NetSalesAmountUSD               : NUMERIC(10,2) Gross - Discount.
+- CostOfGoodsSoldUSD             : NUMERIC(10,2) Inventory acquisition cost.
+- GrossMarginUSD                 : NUMERIC(10,2) NetSales - COGS.
+- ReturnFlag                     : CHAR(1)      'Y' if customer returned; else 'N'.
+- ReturnedQuantityPacks          : INTEGER      Packs returned to inventory.
+- DeliveryOTIFFlag               : CHAR(1)      On-Time In-Full delivery status ('Y'/'N').
+
+--------------------------------------------------------------------------------
+1.6 File: 06_hospital_demand_data.csv (Hospital Monthly Demand Requests)
+--------------------------------------------------------------------------------
+Description     : Clinical monthly procurement requisitions submitted by healthcare systems.
+Grain           : One row per hospital, per medicine, per calendar month.
+Baseline Rows   : 27,216 rows (+1,500 rows per cycle).
+Key Columns     :
+- DemandRecordID                 : VARCHAR(20)  Requisition item ID.
+- RequestMonth                   : DATE         First day of demand month (e.g., '2025-07-01').
+- HospitalID                     : VARCHAR(10)  Healthcare institution ID.
+- HospitalGLN                    : VARCHAR(13)  GS1 GLN.
+- HospitalName                   : VARCHAR(100) Facility name.
+- HospitalType                   : VARCHAR(50)  Academic Medical Center, Community, Trauma Hub.
+- LicensedBeds / ICUBeds         : INTEGER      Clinical capacity metrics.
+- MedicineID                     : VARCHAR(10)  Pharmaceutical requested.
+- RequestedQuantityPacks         : INTEGER      Quantity requisitioned by clinical staff.
+- ApprovedQuantityPacks          : INTEGER      Quantity approved by procurement.
+- AllocatedQuantityPacks         : INTEGER      Quantity dispatched by logistics.
+- FulfilledQuantityPacks         : INTEGER      Quantity physically received and verified.
+- UnfulfilledQuantityPacks       : INTEGER      Requested - Fulfilled shortfall.
+- FulfillmentPct                 : NUMERIC(5,2) (Fulfilled / Requested) * 100.
+- EmergencyOrderFlag             : CHAR(1)      'Y' if off-schedule urgent order; else 'N'.
+- StockoutReportedFlag           : CHAR(1)      'Y' if hospital experienced clinical stockout.
+
+--------------------------------------------------------------------------------
+1.7 File: 07_iot_streaming_data.csv (Cold Chain Telemetry Logs)
+--------------------------------------------------------------------------------
+Description     : High-frequency IoT telemetry logged by sensors in transit containers and warehouse cold rooms.
+Grain           : One row per sensor observation (sampled every 1–5 minutes).
+Baseline Rows   : 292,896 rows (+15,000 rows per cycle).
+Key Columns     : TelemetryID, DeviceID, AssetType, WarehouseID, StorageZoneID,
+                  InboundShipmentID, ReadingTimestampUTC, TemperatureCelsius,
+                  HumidityPct, TemperatureBreachFlag, AlertSeverity, DataLatencySeconds.
+
+
+================================================================================
+PART 2: RELATIONAL STAGING SCHEMA (POSTGRESQL stg.*)
+================================================================================
+All staging tables are designed as UNLOGGED tables to maximize bulk-copy throughput.
+- `stg.master_data`                  : Exact copy of 01_master_data.csv
+- `stg.manufacturing_data`           : Exact copy of 02_manufacturing_data.csv
+- `stg.manufacturer_delivery_data`   : Exact copy of 03_manufacturer_delivery_data.csv
+- `stg.warehouse_data`               : Exact copy of 04_warehouse_data.csv
+- `stg.pharmacy_sales`               : Exact copy of 05_pharmacy_sales_data.csv
+- `stg.hospital_demand`              : Exact copy of 06_hospital_demand_data.csv
+- `stg.iot_streaming`                : Exact copy of 07_iot_streaming_data.csv
+
+Metadata Columns Enriched During Staging:
+- `_staged_at_utc`                   : TIMESTAMP DEFAULT clock_timestamp()
+- `_source_file`                     : VARCHAR(255)
+- `_batch_id`                        : UUID linking to `ops.batch_ingestion_log`
+
+
+================================================================================
+PART 3: DATA ENGINEERING OPERATIONAL SCHEMAS (POSTGRESQL ops.*)
+================================================================================
+
+3.1 Table: ops.batch_ingestion_log
+- batch_id             : UUID PRIMARY KEY.
+- file_name            : VARCHAR(255) Name of file ingested.
+- row_count            : INTEGER Total records ingested.
+- start_time           : TIMESTAMP Batch start.
+- end_time             : TIMESTAMP Batch end.
+- duration_seconds     : NUMERIC(8,2) Generated column (end_time - start_time).
+- status               : VARCHAR(20) 'SUCCESS', 'FAILED', 'PARTIAL'.
+- error_message        : TEXT Nullable stacktrace.
+
+3.2 Table: ops.streaming_ingestion_log
+- event_id             : BIGSERIAL PRIMARY KEY.
+- device_id            : VARCHAR(50).
+- event_timestamp      : TIMESTAMP Source generation timestamp.
+- db_insert_timestamp  : TIMESTAMP Physical write timestamp.
+- latency_seconds      : NUMERIC(8,3) (db_insert_timestamp - event_timestamp).
+- is_breached          : BOOLEAN Cold chain excursion alert.
+- is_malformed         : BOOLEAN Null constraint or type parsing error.
+
+3.3 Table: ops.rejected_records_log
+- rejection_id         : BIGSERIAL PRIMARY KEY.
+- source_file          : VARCHAR(255).
+- rejected_row_data    : TEXT Raw CSV line content.
+- reason               : TEXT Validation failure explanation (e.g., 'FK MedicineID not found').
+- created_at           : TIMESTAMP.
+
+3.4 Table: ops.query_execution_log
+- query_id             : BIGSERIAL PRIMARY KEY.
+- query_name           : VARCHAR(100) (e.g., 'OLAP_Q01_MonthlySalesTrend').
+- execution_ms         : NUMERIC(10,2) Elapsed execution time in milliseconds.
+- rows_returned        : INTEGER Result set cardinality.
+- execution_timestamp  : TIMESTAMP.
+
+
+================================================================================
+PART 4: COLUMNAR DIMENSIONAL WAREHOUSE SCHEMA (DUCKDB SDI MART)
+================================================================================
+
+--------------------------------------------------------------------------------
+4.1 Dimension Tables
+--------------------------------------------------------------------------------
+
+1. dim_medicine (Slowly Changing Dimension Type 2)
+   - MedicineKey                  : BIGINT PRIMARY KEY (Surrogate).
+   - MedicineID                   : VARCHAR(10) NOT NULL (Natural Key).
+   - GenericName                  : VARCHAR(100) NOT NULL.
+   - BrandName                    : VARCHAR(100).
+   - DiseaseCategory              : VARCHAR(50) (e.g., Oncology, Cardiology).
+   - TherapeuticClass             : VARCHAR(50).
+   - DosageForm                   : VARCHAR(30).
+   - Strength                     : VARCHAR(30).
+   - PackSize                     : INTEGER.
+   - ControlledMedicineFlag       : CHAR(1).
+   - ColdChainFlag                : CHAR(1).
+   - StorageMinTempC              : NUMERIC(4,1).
+   - StorageMaxTempC              : NUMERIC(4,1).
+   - WholesalePriceUSD            : NUMERIC(10,2) (SCD-2 Tracked).
+   - RecommendedRetailPriceUSD    : NUMERIC(10,2) (SCD-2 Tracked).
+   - ValidFromDate                : DATE NOT NULL (SCD-2 Temporal Start).
+   - ValidToDate                  : DATE NOT NULL (SCD-2 Temporal End, '9999-12-31').
+   - IsCurrent                    : CHAR(1) NOT NULL ('Y' for active, 'N' for retired).
+
+2. dim_pharmacy
+   - PharmacyKey                  : BIGINT PRIMARY KEY (Surrogate).
+   - PharmacyID                   : VARCHAR(10) NOT NULL (Natural Key).
+   - PharmacyGLN                  : VARCHAR(13).
+   - PharmacyName                 : VARCHAR(100).
+   - PharmacyType                 : VARCHAR(50) (Physical, Hospital, E-commerce).
+   - City                         : VARCHAR(50).
+   - State                        : VARCHAR(10).
+   - CountryCode                  : VARCHAR(10).
+
+3. dim_hospital
+   - HospitalKey                  : BIGINT PRIMARY KEY (Surrogate).
+   - HospitalID                   : VARCHAR(10) NOT NULL (Natural Key).
+   - HospitalGLN                  : VARCHAR(13).
+   - HospitalName                 : VARCHAR(100).
+   - HospitalType                 : VARCHAR(50).
+   - City                         : VARCHAR(50).
+   - State                        : VARCHAR(10).
+   - LicensedBeds                 : INTEGER.
+   - ICUBeds                      : INTEGER.
+   - TraumaLevel                  : VARCHAR(20).
+   - CatchmentPopulation          : INTEGER.
+
+4. dim_warehouse
+   - WarehouseKey                 : BIGINT PRIMARY KEY (Surrogate).
+   - WarehouseID                  : VARCHAR(10) NOT NULL (Natural Key).
+   - WarehouseGLN                 : VARCHAR(13).
+   - WarehouseName                : VARCHAR(100).
+   - City                         : VARCHAR(50).
+   - State                        : VARCHAR(10).
+   - TotalCapacityPacks           : INTEGER.
+
+5. dim_date (Conformed, Role-Playing Dimension)
+   - DateKey                      : INTEGER PRIMARY KEY (YYYYMMDD).
+   - FullDate                     : DATE NOT NULL.
+   - DayOfWeek                    : INTEGER (1=Sunday, 7=Saturday).
+   - DayName                      : VARCHAR(10) ('Monday').
+   - CalendarDay                  : INTEGER (1-31).
+   - CalendarMonth                : INTEGER (1-12).
+   - MonthName                    : VARCHAR(10) ('July').
+   - CalendarQuarter              : INTEGER (1-4).
+   - CalendarYear                 : INTEGER (2024-2026).
+   - FiscalQuarter                : VARCHAR(10) ('Q3').
+   - IsWeekendFlag                : CHAR(1) ('Y'/'N').
+
+6. dim_sale_profile (Junk Dimension for Pharmacy Sales Flags)
+   - SaleProfileKey               : BIGINT PRIMARY KEY.
+   - PrescriptionRequiredFlag     : CHAR(1) ('Y'/'N').
+   - CustomerSegment              : VARCHAR(50).
+   - PayerType                    : VARCHAR(50).
+   - PaymentMethod                : VARCHAR(50).
+   - EcommerceDeliveryStatus      : VARCHAR(50).
+   - DeliveryOTIFFlag             : CHAR(1) ('Y'/'N').
+   - ReturnFlag                   : CHAR(1) ('Y'/'N').
+
+7. dim_request_profile (Junk Dimension for Hospital Demand Flags)
+   - RequestProfileKey            : BIGINT PRIMARY KEY.
+   - EmergencyOrderFlag           : CHAR(1) ('Y'/'N').
+   - StockoutReportedFlag         : CHAR(1) ('Y'/'N').
+   - DemandStatus                 : VARCHAR(50) ('Fully Fulfilled', 'Partially Fulfilled', 'Stockout').
+
+--------------------------------------------------------------------------------
+4.2 Fact Tables
+--------------------------------------------------------------------------------
+
+1. fact_pharmacy_sale (Transactional Grain)
+   - SaleKey                      : BIGINT PRIMARY KEY.
+   - SalesTransactionID           : VARCHAR(20) NOT NULL (Degenerate Dimension).
+   - SaleDateKey                  : INTEGER REFERENCES dim_date(DateKey).
+   - DeliveryDateKey              : INTEGER REFERENCES dim_date(DateKey).
+   - ExpiryDateKey                : INTEGER REFERENCES dim_date(DateKey).
+   - MedicineKey                  : BIGINT REFERENCES dim_medicine(MedicineKey).
+   - PharmacyKey                  : BIGINT REFERENCES dim_pharmacy(PharmacyKey).
+   - WarehouseKey                 : BIGINT REFERENCES dim_warehouse(WarehouseKey).
+   - SaleProfileKey               : BIGINT REFERENCES dim_sale_profile(SaleProfileKey).
+   - PrescriptionID               : VARCHAR(20) (Degenerate Dimension).
+   - WarehouseLotID               : VARCHAR(20) (Degenerate Dimension).
+   - QuantitySoldPacks            : INTEGER NOT NULL.
+   - UnitRetailPriceUSD           : NUMERIC(10,2) NOT NULL.
+   - GrossSalesAmountUSD          : NUMERIC(10,2) NOT NULL.
+   - DiscountAmountUSD            : NUMERIC(10,2) DEFAULT 0.
+   - NetSalesAmountUSD             : NUMERIC(10,2) NOT NULL.
+   - SalesTaxUSD                  : NUMERIC(10,2) NOT NULL.
+   - CostOfGoodsSoldUSD           : NUMERIC(10,2) NOT NULL.
+   - GrossMarginUSD               : NUMERIC(10,2) NOT NULL.
+   - ReturnedQuantityPacks        : INTEGER DEFAULT 0.
+   - DaysToExpiryAtSale           : INTEGER.
+
+2. fact_hospital_demand (Periodic Monthly Snapshot Grain)
+   - DemandKey                    : BIGINT PRIMARY KEY.
+   - DemandRecordID               : VARCHAR(20) NOT NULL (Degenerate Dimension).
+   - RequestMonthDateKey          : INTEGER REFERENCES dim_date(DateKey).
+   - MedicineKey                  : BIGINT REFERENCES dim_medicine(MedicineKey).
+   - HospitalKey                  : BIGINT REFERENCES dim_hospital(HospitalKey).
+   - RequestProfileKey            : BIGINT REFERENCES dim_request_profile(RequestProfileKey).
+   - RequestedQuantityPacks       : INTEGER NOT NULL.
+   - ApprovedQuantityPacks        : INTEGER NOT NULL.
+   - AllocatedQuantityPacks       : INTEGER NOT NULL.
+   - FulfilledQuantityPacks       : INTEGER NOT NULL.
+   - UnfulfilledQuantityPacks     : INTEGER NOT NULL.
+   - FulfillmentPct               : NUMERIC(5,2) NOT NULL.
+   - EmergencyOrderCount          : INTEGER DEFAULT 0.
+   - StockoutIncidentCount        : INTEGER DEFAULT 0.
+
+
+================================================================================
+PART 5: BUSINESS INTELLIGENCE AGGREGATE SCHEMA (POSTGRESQL bi.*)
+================================================================================
+Pre-computed by `src/transform/bi_sync.py` to power Grafana visualizations:
+
+1.  bi.kpi_summary              : High-level executive KPIs (Total Revenue, Margin %, Stockout Count, OTIF %).
+2.  bi.monthly_sales_trend       : Time-series of Gross Sales, Discounts, Net Sales, and COGS by Month.
+3.  bi.channel_performance       : Revenue, Margin, Pack Volume, and Return % broken down by Sales Channel.
+4.  bi.disease_sales             : Revenue distribution and margin breakdown across Disease Categories.
+5.  bi.hospital_demand           : Requisition volume, Fulfillment %, and Unfulfilled packs per Hospital.
+6.  bi.unfulfilled_by_class      : Clinical shortfalls grouped by Therapeutic Class to spotlight health risks.
+7.  bi.medicine_360              : Cross-fact intelligence: Sales revenue, units sold, requested vs. unfulfilled per medicine.
+8.  bi.regional_intelligence     : Sales revenue and pack consumption mapped by State and Region.
+9.  bi.emergency_ratio           : Monthly trend of emergency vs. scheduled hospital requisitions.
+10. bi.top_movers                : Ranked top 10 highest-grossing medicines and their average margins.
+11. bi.service_level_detail      : Hospital Type × Therapeutic Class Fulfillment heatmap matrix.
+
+================================================================================
+                        END OF DATA DICTIONARY
+================================================================================

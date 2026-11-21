@@ -5,8 +5,8 @@ Generates synthetic records for all 7 source CSV files to simulate a
 live 24/7 pipeline.  Each call to ``generate_all(cycle)`` writes new
 CSVs into ``data/landing/`` where dag_02_ingestion picks them up.
 
-Cycle 1  → dates  Jul – Sep 2025
-Cycle 2  → dates  Oct – Dec 2025  (+ price changes → SCD‑2 trigger)
+Cycle 1  → dates  Jul – Sep 2026
+Cycle 2  → dates  Oct – Dec 2026  (+ price changes → SCD‑2 trigger)
 """
 
 import os
@@ -101,7 +101,7 @@ def _gen_master(rng, cycle: int):
                 "WholesalePriceUSD": f"{rng.uniform(1.5, 20.0):.2f}",
                 "RecommendedRetailPriceUSD": f"{rng.uniform(2.0, 30.0):.2f}",
                 "ProductStatus": "Active",
-                "EffectiveFromDate": "2025-07-01",
+                "EffectiveFromDate": "2026-07-01",
                 "SourceSystem": "ERP_PRODUCT_MASTER",
             })
     else:
@@ -113,7 +113,7 @@ def _gen_master(rng, cycle: int):
             old_r = float(row["RecommendedRetailPriceUSD"])
             row["WholesalePriceUSD"] = f"{old_w * rng.uniform(1.05, 1.20):.2f}"
             row["RecommendedRetailPriceUSD"] = f"{old_r * rng.uniform(1.05, 1.20):.2f}"
-            row["EffectiveFromDate"] = "2025-10-01"
+            row["EffectiveFromDate"] = "2026-10-01"
             rows.append(row)
     return pd.DataFrame(rows)
 
@@ -127,8 +127,8 @@ def _gen_manufacturing(rng, cycle: int):
     batch_sizes = master["StandardBatchSizePacks"].dropna().astype(int).tolist()
 
     base_offset = 561 + (cycle - 1) * 50
-    start_dt = datetime(2025, 7, 1) if cycle == 1 else datetime(2025, 10, 1)
-    end_dt = datetime(2025, 9, 30) if cycle == 1 else datetime(2025, 12, 31)
+    start_dt = datetime(2026, 7, 1) if cycle == 1 else datetime(2026, 10, 1)
+    end_dt = datetime(2026, 9, 30) if cycle == 1 else datetime(2026, 12, 31)
     rows = []
     for i in range(50):
         idx = base_offset + i + 1
@@ -152,8 +152,8 @@ def _gen_manufacturing(rng, cycle: int):
         total_cost = round(labor + material + overhead, 2)
         cost_per = round(total_cost / max(released, 1), 4)
         rows.append({
-            "ManufacturingOrderID": f"MO-2025-{idx:05d}",
-            "ProductionBatchID": f"B25-{plant}-{idx:06d}",
+            "ManufacturingOrderID": f"MO-2026-{idx:05d}",
+            "ProductionBatchID": f"B26-{plant}-{idx:06d}",
             "MedicineID": med,
             "GTIN14": gtins.get(med, ""),
             "PlantID": plant,
@@ -220,8 +220,8 @@ def _gen_delivery(rng, cycle: int):
                    "PLT03": "Clarity Pharma South Plant", "PLT04": "Clarity Pharma West Plant"}
     base_offset = 999 + (cycle - 1) * 80
     base_mo = 561 + (cycle - 1) * 50
-    start_dt = datetime(2025, 7, 15) if cycle == 1 else datetime(2025, 10, 15)
-    end_dt = datetime(2025, 9, 30) if cycle == 1 else datetime(2025, 12, 31)
+    start_dt = datetime(2026, 7, 15) if cycle == 1 else datetime(2026, 10, 15)
+    end_dt = datetime(2026, 9, 30) if cycle == 1 else datetime(2026, 12, 31)
     rows = []
     for i in range(80):
         idx = base_offset + i + 1
@@ -247,8 +247,8 @@ def _gen_delivery(rng, cycle: int):
             "ShipmentID": f"MFG-SHP-{idx:07d}",
             "ShipmentLineNumber": "1",
             "SSCC18": f"9506001000{rng.integers(10000000, 99999999)}",
-            "ManufacturingOrderID": f"MO-2025-{mo_idx:05d}",
-            "ProductionBatchID": f"B25-{plant}-{mo_idx:06d}",
+            "ManufacturingOrderID": f"MO-2026-{mo_idx:05d}",
+            "ProductionBatchID": f"B26-{plant}-{mo_idx:06d}",
             "MedicineID": med,
             "GTIN14": gtins.get(med, ""),
             "OriginPlantID": plant,
@@ -311,8 +311,8 @@ def _gen_warehouse(rng, cycle: int):
                     "WH005": ["WH005-AMB-01"],
                     "WH006": ["WH006-AMB-01", "WH006-COLD-01"]}
     base_id = 112184 + (cycle - 1) * 5000
-    start_dt = datetime(2025, 7, 1) if cycle == 1 else datetime(2025, 10, 1)
-    end_dt = datetime(2025, 9, 30) if cycle == 1 else datetime(2025, 12, 31)
+    start_dt = datetime(2026, 7, 1) if cycle == 1 else datetime(2026, 10, 1)
+    end_dt = datetime(2026, 9, 30) if cycle == 1 else datetime(2026, 12, 31)
     rows = []
     for i in range(5000):
         idx = base_id + i + 1
@@ -337,7 +337,7 @@ def _gen_warehouse(rng, cycle: int):
             "WarehouseLotID": f"WHLOT-{rng.integers(1, 2000):07d}",
             "InboundShipmentID": f"MFG-SHP-{rng.integers(1, 1200):07d}",
             "InboundShipmentLineNumber": "1",
-            "ProductionBatchID": f"B25-PLT{rng.integers(1,5):02d}-{rng.integers(1,700):06d}",
+            "ProductionBatchID": f"B26-PLT{rng.integers(1,5):02d}-{rng.integers(1,700):06d}",
             "MedicineID": med,
             "GTIN14": gtins.get(med, ""),
             "WarehouseID": wh_id,
@@ -400,8 +400,8 @@ def _gen_sales(rng, cycle: int):
     promos = ["NONE", "LOYALTY5", "SEASONAL10", "NEWCUST15", "HEALTH20"]
 
     base_id = 500000 + (cycle - 1) * 25000
-    start_dt = datetime(2025, 7, 1) if cycle == 1 else datetime(2025, 10, 1)
-    end_dt = datetime(2025, 9, 30) if cycle == 1 else datetime(2025, 12, 31)
+    start_dt = datetime(2026, 7, 1) if cycle == 1 else datetime(2026, 10, 1)
+    end_dt = datetime(2026, 9, 30) if cycle == 1 else datetime(2026, 12, 31)
     rows = []
     for i in range(25000):
         idx = base_id + i + 1
@@ -414,6 +414,13 @@ def _gen_sales(rng, cycle: int):
         channel = rng.choice(channels)
         qty = int(rng.integers(1, 10))
         unit_price = round(rng.uniform(1.5, 50.0), 2)
+        # Inject ~0.5% quarantine records (negative price or null medicine) to validate quarantine pipeline
+        is_bad = rng.random() < 0.005
+        if is_bad:
+            if rng.random() < 0.5:
+                unit_price = -9.99
+            else:
+                med = ""
         gross = round(qty * unit_price, 2)
         discount = round(gross * rng.uniform(0, 0.15), 2)
         net = round(gross - discount, 2)
@@ -448,7 +455,7 @@ def _gen_sales(rng, cycle: int):
             "DeliveryOTIFFlag": rng.choice(["Y", "Y", "Y", "N"]),
             "WarehouseLotID": f"WHLOT-{rng.integers(1, 2000):07d}",
             "SourceWarehouseID": rng.choice(["WH001", "WH002", "WH003", "WH004", "WH005", "WH006"]),
-            "ProductionBatchID": f"B25-PLT{rng.integers(1,5):02d}-{rng.integers(1,700):06d}",
+            "ProductionBatchID": f"B26-PLT{rng.integers(1,5):02d}-{rng.integers(1,700):06d}",
             "MedicineID": med,
             "GTIN14": gtins.get(med, ""),
             "DiseaseCategory": med_cats.get(med, ""),
@@ -494,12 +501,14 @@ def _gen_demand(rng, cycle: int):
     hospitals = demand[hosp_cols].drop_duplicates(subset=["HospitalID"]).to_dict("records")
 
     base_id = 27216 + (cycle - 1) * 1500
-    months = ["2025-07-01", "2025-08-01", "2025-09-01"] if cycle == 1 else \
-             ["2025-10-01", "2025-11-01", "2025-12-01"]
+    months = ["2026-07-01", "2026-08-01", "2026-09-01"] if cycle == 1 else \
+             ["2026-10-01", "2026-11-01", "2026-12-01"]
     rows = []
     for i in range(1500):
         idx = base_id + i + 1
         med = rng.choice(med_ids)
+        if rng.random() < 0.005:  # 0.5% quarantine
+            med = ""
         hosp = hospitals[int(rng.integers(0, len(hospitals)))]
         forecast = int(rng.integers(50, 500))
         requested = int(forecast * rng.uniform(0.8, 1.2))
@@ -579,8 +588,8 @@ def _gen_iot(rng, cycle: int):
         ("IOT-SHIP-002", "MFG-SHP-0001002"),
         ("IOT-SHIP-003", "MFG-SHP-0001003"),
     ]
-    start_dt = datetime(2025, 7, 1) if cycle == 1 else datetime(2025, 10, 1)
-    end_dt = datetime(2025, 9, 30) if cycle == 1 else datetime(2025, 12, 31)
+    start_dt = datetime(2026, 7, 1) if cycle == 1 else datetime(2026, 10, 1)
+    end_dt = datetime(2026, 9, 30) if cycle == 1 else datetime(2026, 12, 31)
     rows = []
     for i in range(15000):
         idx = base_id + i + 1

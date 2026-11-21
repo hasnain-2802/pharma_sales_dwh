@@ -2,11 +2,17 @@
   "id": null,
   "uid": "query-performance",
   "title": "Analytical Query Performance",
-  "description": "Dashboard for monitoring analytical query performance and optimization",
-  "tags": ["pharma", "query", "performance"],
+  "description": "Pharmaceutical Cold Supply Chain \u2014 Analytical Query Benchmark, Index Optimization, and Execution Profiling",
+  "tags": [
+    "pharma",
+    "query",
+    "performance",
+    "benchmarks",
+    "optimization"
+  ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "refresh": "30s",
   "editable": true,
   "fiscalYearStartMonth": 0,
@@ -15,171 +21,604 @@
   "panels": [
     {
       "id": 1,
-      "type": "barchart",
-      "title": "Avg Query Execution Time (ms)",
-      "description": "Average execution time per query — base vs optimized variants",
-      "datasource": {
-        "type": "postgres",
-        "uid": "Staging-Postgres"
-      },
-      "targets": [
-        {
-          "rawSql": "SELECT query_name, variant, avg_ms FROM ops.v_query_summary ORDER BY query_name, variant",
-          "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "unit": "ms"
-        },
-        "overrides": []
+      "type": "text",
+      "title": "Query Engine & Optimization Protocol",
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
       },
       "options": {
-        "orientation": "vertical",
-        "barWidth": 0.7,
-        "groupWidth": 0.7,
-        "showValue": "auto",
-        "stacking": "none",
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi" },
-        "xTickLabelRotation": -45
+        "mode": "html",
+        "content": "\n<div style=\"display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #181B1F 0%, #1e2228 100%); padding: 10px 18px; border-radius: 6px; border-left: 4px solid #3274D9; margin-bottom: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);\">\n  <div>\n    <div style=\"font-size: 16px; font-weight: 600; color: #FFFFFF; letter-spacing: 0.3px;\">Analytical Query Optimization & Benchmark Cockpit</div>\n    <div style=\"font-size: 12px; color: #8E8E93; margin-top: 2px;\"><b>Primary Decision:</b> Verify OLAP indexing, materialization speedup factors, and sub-second query SLAs &nbsp;|&nbsp; <b>Audience:</b> Analytics Engineers & Stakeholders &nbsp;|&nbsp; <b>Coverage:</b> 2023\u20132026 &nbsp;|&nbsp; <b>Auto-Refresh:</b> 1m</div>\n  </div>\n  <div style=\"display: flex; gap: 8px;\">\n    <a href=\"/d/bi-channel-margin/channel-revenue-and-margin\" style=\"background: #22262E; color: #61AFFE; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3274D9;\">\ud83d\udcca Channel Margin</a>\n    <a href=\"/d/bi-hospital-forecast/hospital-forecast-vs-actual\" style=\"background: #22262E; color: #49DA9A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #299C46;\">\ud83c\udfe5 Hospital Demand</a>\n    <a href=\"/d/bi-fast-slow/fast-vs-slow-movers\" style=\"background: #22262E; color: #FADE2A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #EAB839;\">\u26a1 Fast / Slow</a>\n    <a href=\"/d/batch-ingestion/batch-ingestion-operations\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\udce6 Batch DE</a>\n    <a href=\"/d/streaming-ingestion/streaming-ingestion-operations\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\udce1 Streaming DE</a>\n    <a href=\"/d/storage-staging/storage-and-staging-health\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\uddc4\ufe0f Storage DE</a>\n    <a href=\"/d/query-performance/analytical-query-performance\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\u26a1 Query DE</a>\n  </div>\n</div>\n"
       },
-      "transformations": [
-        {
-          "id": "prepareTimeSeries",
-          "options": {
-            "format": "multi"
-          }
-        }
-      ],
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 0 }
+      "transparent": true
+    },
+    {
+      "id": 100,
+      "type": "row",
+      "title": "Executive Latency & Workload KPIs",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 3
+      }
     },
     {
       "id": 2,
       "type": "stat",
-      "title": "Total Queries Executed",
-      "description": "Total number of queries recorded in the query log",
+      "title": "Total Executions",
+      "description": "Total analytical benchmark queries executed and monitored",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
       "targets": [
         {
-          "rawSql": "SELECT count(*) as total FROM ops.query_log",
+          "rawSql": "SELECT count(*) AS \"Total Runs\" FROM ops.query_log",
           "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
-          }
+          "refId": "A"
         }
       ],
       "fieldConfig": {
         "defaults": {
+          "unit": "short",
           "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "blue", "value": null }
-            ]
-          },
-          "unit": "short"
+            "mode": "fixed",
+            "fixedColor": "#5794F2"
+          }
         },
         "overrides": []
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
+          "calcs": [
+            "lastNotNull"
+          ]
         },
+        "colorMode": "background",
+        "graphMode": "area",
         "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto"
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
       },
-      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 }
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 4
+      }
     },
     {
       "id": 3,
-      "type": "gauge",
-      "title": "Query Error Rate %",
-      "description": "Percentage of queries that failed",
+      "type": "stat",
+      "title": "Mean Latency",
+      "description": "Mean execution duration across all successful analytical queries",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
       "targets": [
         {
-          "rawSql": "SELECT round(100.0 * count(*) FILTER (WHERE status='FAILED') / count(*), 2) as error_rate FROM ops.query_log",
+          "rawSql": "SELECT round(avg(duration_ms), 1) AS \"Mean (ms)\" FROM ops.query_log WHERE status = 'SUCCESS'",
           "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
-          }
+          "refId": "A"
         }
       ],
       "fieldConfig": {
         "defaults": {
+          "unit": "ms",
           "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 5 },
-              { "color": "red", "value": 20 }
-            ]
-          },
-          "min": 0,
-          "max": 100,
-          "unit": "percent"
+            "mode": "fixed",
+            "fixedColor": "#73BF69"
+          }
         },
         "overrides": []
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
+          "calcs": [
+            "lastNotNull"
+          ]
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "orientation": "auto"
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
       },
-      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 }
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 4
+      }
     },
     {
       "id": 4,
-      "type": "table",
-      "title": "Query Performance Summary",
-      "description": "Detailed query performance summary with base and optimized variants",
+      "type": "stat",
+      "title": "P95 Latency",
+      "description": "95th percentile query execution duration ensuring analytical SLAs",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
       "targets": [
         {
-          "rawSql": "SELECT * FROM ops.v_query_summary ORDER BY query_name, variant",
+          "rawSql": "SELECT round(percentile_cont(0.95) within group (order by duration_ms)::numeric, 1) AS \"P95 (ms)\" FROM ops.query_log WHERE status = 'SUCCESS'",
           "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 500
+              },
+              {
+                "color": "#E02F44",
+                "value": 1500
+              }
+            ]
           }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 4
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "P99 Latency",
+      "description": "99th percentile query latency capturing worst-case analytical scans",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT round(percentile_cont(0.99) within group (order by duration_ms)::numeric, 1) AS \"P99 (ms)\" FROM ops.query_log WHERE status = 'SUCCESS'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 1000
+              },
+              {
+                "color": "#E02F44",
+                "value": 2500
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 4
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Mean Speedup",
+      "description": "Average speedup factor achieved across optimized query variants",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT round(avg(b.avg_ms / nullif(o.avg_ms, 0)), 1) AS \"Speedup (x)\" FROM ops.v_query_summary b JOIN ops.v_query_summary o ON b.query_name = o.query_name WHERE b.variant = 'base' AND o.variant = 'opt'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#20B2AA"
+          },
+          "custom": {},
+          "unit": "none",
+          "decimals": 1,
+          "overrides": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 4
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Error Rate",
+      "description": "Percentage of analytical queries resulting in timeout or execution error",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT round(100.0 * count(CASE WHEN status = 'FAILED' THEN 1 END) / nullif(count(*), 0), 2) AS \"Error Rate %\" FROM ops.query_log",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#E02F44",
+                "value": 1.0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 4
+      }
+    },
+    {
+      "id": 101,
+      "type": "row",
+      "title": "Query Benchmarking & Optimization Speedup",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      }
+    },
+    {
+      "id": 10,
+      "type": "barchart",
+      "title": "Query Execution Duration: Base Scans vs Optimized Variants (ms)",
+      "description": "Comparative benchmark showing execution latency in milliseconds before and after indexing optimizations",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT b.query_name AS \"Query Benchmark\", b.avg_ms AS \"Base Scan (ms)\", o.avg_ms AS \"Optimized (ms)\" FROM ops.v_query_summary b JOIN ops.v_query_summary o ON b.query_name = o.query_name WHERE b.variant = 'base' AND o.variant = 'opt' ORDER BY b.avg_ms DESC",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {}
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Base Scan (ms)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#EAB839",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Optimized (ms)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#73BF69",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "horizontal",
+        "barWidth": 0.65,
+        "showValue": "always",
+        "stacking": "none",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "xTickLabelRotation": 0,
+        "xField": "Query Benchmark"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 13,
+        "x": 0,
+        "y": 9
+      }
+    },
+    {
+      "id": 11,
+      "type": "bargauge",
+      "title": "Optimization Speedup Multiplier by Query Workload",
+      "description": "Ratio of base execution duration divided by optimized duration. Strictly starts at zero baseline.",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT b.query_name AS \"Query Workload\", round(b.avg_ms / nullif(o.avg_ms, 0), 2) AS \"Speedup Factor (x)\" FROM ops.v_query_summary b JOIN ops.v_query_summary o ON b.query_name = o.query_name WHERE b.variant = 'base' AND o.variant = 'opt' ORDER BY \"Speedup Factor (x)\" DESC",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {},
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 10,
+        "valueMode": "color"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 11,
+        "x": 13,
+        "y": 9
+      }
+    },
+    {
+      "id": 102,
+      "type": "row",
+      "title": "Workload Trajectory & Performance Audit Grid",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      }
+    },
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "Analytical Query Volume & Error Profile Over Time",
+      "description": "Daily executions tracked chronologically to evaluate system workload trends",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT day::timestamp with time zone AS time, query_count AS \"Total Invocations\", failed AS \"Failed Queries\" FROM ops.v_query_daily ORDER BY day",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 12,
+            "axisSoftMin": 0,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "gradientMode": "opacity",
+            "showPoints": "auto",
+            "pointSize": 4
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total Invocations"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#5794F2",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Failed Queries"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#E02F44",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 10,
+        "x": 0,
+        "y": 19
+      }
+    },
+    {
+      "id": 21,
+      "type": "table",
+      "title": "Detailed Query Benchmark Audit Matrix",
+      "description": "Complete breakdown of benchmark runs, mean and minimum durations, and error rates",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT query_name AS \"Benchmark Query\", variant AS \"Optimization Tier\", runs AS \"Runs Monitored\", avg_ms AS \"Avg Duration (ms)\", min_ms AS \"Min Duration (ms)\", error_rate_pct AS \"Error Rate %\", CASE WHEN avg_ms < 100 THEN 'Optimal' WHEN avg_ms < 500 THEN 'Acceptable' ELSE 'Tuning Required' END AS \"Performance Health\" FROM ops.v_query_summary ORDER BY query_name, variant",
+          "format": "table",
+          "refId": "A"
         }
       ],
       "fieldConfig": {
@@ -190,28 +629,47 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "#73BF69",
+                "value": null
+              }
             ]
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "error_rate_pct" },
+            "matcher": {
+              "id": "byName",
+              "options": "Performance Health"
+            },
             "properties": [
               {
-                "id": "thresholds",
+                "id": "custom.cellOptions",
                 "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    { "color": "green", "value": null },
-                    { "color": "yellow", "value": 5 },
-                    { "color": "red", "value": 20 }
-                  ]
+                  "type": "color-text"
                 }
               },
               {
-                "id": "custom.cellOptions",
-                "value": { "type": "color-text" }
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Optimal": {
+                        "color": "#73BF69",
+                        "text": "Optimal"
+                      },
+                      "Acceptable": {
+                        "color": "#EAB839",
+                        "text": "Acceptable"
+                      },
+                      "Tuning Required": {
+                        "color": "#E02F44",
+                        "text": "Tuning Required"
+                      }
+                    }
+                  }
+                ]
               }
             ]
           }
@@ -220,131 +678,51 @@
       "options": {
         "showHeader": true,
         "cellHeight": "sm",
-        "footer": { "show": false }
-      },
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 5 }
-    },
-    {
-      "id": 5,
-      "type": "timeseries",
-      "title": "Daily Query Count",
-      "description": "Number of queries executed per day (total and failed)",
-      "datasource": {
-        "type": "postgres",
-        "uid": "Staging-Postgres"
-      },
-      "targets": [
-        {
-          "rawSql": "SELECT day as time, query_count, failed FROM ops.v_query_daily ORDER BY day",
-          "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
-          }
+        "footer": {
+          "show": false
         }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth",
-            "fillOpacity": 20,
-            "pointSize": 5,
-            "showPoints": "auto",
-            "spanNulls": false,
-            "lineWidth": 2,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "scaleDistribution": { "type": "linear" }
-          },
-          "unit": "short"
-        },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "failed" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
-            ]
-          }
-        ]
       },
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "desc" }
-      },
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 10 }
-    },
-    {
-      "id": 6,
-      "type": "barchart",
-      "title": "Base vs Optimized Speedup",
-      "description": "Speedup ratio of optimized queries compared to base",
-      "datasource": {
-        "type": "postgres",
-        "uid": "Staging-Postgres"
-      },
-      "targets": [
-        {
-          "rawSql": "SELECT b.query_name, b.avg_ms as base_ms, o.avg_ms as opt_ms, round(b.avg_ms / nullif(o.avg_ms, 0), 2) as speedup FROM ops.v_query_summary b JOIN ops.v_query_summary o ON b.query_name = o.query_name WHERE b.variant = 'base' AND o.variant = 'opt'",
-          "format": "table",
-          "refId": "A",
-          "datasource": {
-            "type": "postgres",
-            "uid": "Staging-Postgres"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "unit": "short"
-        },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "base_ms" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } },
-              { "id": "unit", "value": "ms" }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "opt_ms" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } },
-              { "id": "unit", "value": "ms" }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "speedup" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } },
-              { "id": "unit", "value": "x" }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "orientation": "vertical",
-        "barWidth": 0.7,
-        "groupWidth": 0.7,
-        "showValue": "auto",
-        "stacking": "none",
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi" },
-        "xTickLabelRotation": -45
-      },
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 15 }
+      "gridPos": {
+        "h": 9,
+        "w": 14,
+        "x": 10,
+        "y": 19
+      }
     }
   ],
-  "templating": { "list": [] },
-  "annotations": { "list": [] },
-  "time": { "from": "now-7d", "to": "now" },
-  "timepicker": {},
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "time": {
+    "from": "now-3y",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d",
+      "90d",
+      "1y",
+      "3y",
+      "5y"
+    ]
+  },
   "liveNow": false
 }

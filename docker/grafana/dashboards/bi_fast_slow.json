@@ -1,0 +1,581 @@
+{
+  "id": null,
+  "uid": "bi-fast-slow",
+  "title": "Fast vs Slow Movers",
+  "description": "Decision: Which medicines to promote or review?",
+  "tags": [
+    "pharma",
+    "bi",
+    "movers",
+    "medicine"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "title": "Channel Revenue & Margin",
+      "type": "link",
+      "url": "/d/bi-channel-margin/channel-revenue-margin",
+      "icon": "dashboard",
+      "tooltip": "Back to commercial view"
+    },
+    {
+      "title": "Hospital Forecast vs Actual",
+      "type": "link",
+      "url": "/d/bi-hospital-forecast/hospital-forecast-vs-actual",
+      "icon": "dashboard",
+      "tooltip": "Drill into hospital fulfillment"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "therapeutic_class",
+        "type": "query",
+        "label": "Therapeutic Class",
+        "datasource": {
+          "type": "postgres",
+          "uid": "Staging-Postgres"
+        },
+        "query": "SELECT DISTINCT therapeutic_class FROM bi.top_movers WHERE therapeutic_class IS NOT NULL AND therapeutic_class != '' ORDER BY 1",
+        "multi": false,
+        "includeAll": true,
+        "allValue": "ALL",
+        "current": {
+          "text": "All",
+          "value": "ALL"
+        },
+        "refresh": 1
+      },
+      {
+        "name": "disease_category",
+        "type": "query",
+        "label": "Disease Category",
+        "datasource": {
+          "type": "postgres",
+          "uid": "Staging-Postgres"
+        },
+        "query": "SELECT DISTINCT disease_category FROM bi.medicine_360 WHERE disease_category IS NOT NULL AND disease_category != '' ORDER BY 1",
+        "multi": false,
+        "includeAll": true,
+        "allValue": "ALL",
+        "current": {
+          "text": "All",
+          "value": "ALL"
+        },
+        "refresh": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "html",
+        "content": "\n<div style=\"display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #181B1F 0%, #1e2228 100%); padding: 10px 18px; border-radius: 6px; border-left: 4px solid #3274D9; margin-bottom: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);\">\n  <div>\n    <div style=\"font-size: 16px; font-weight: 600; color: #FFFFFF; letter-spacing: 0.3px;\">Medicine Velocity: Fast vs Slow Movers Portfolio</div>\n    <div style=\"font-size: 12px; color: #8E8E93; margin-top: 2px;\"><b>Primary Decision:</b> Which pharmaceutical formulations to promote, reorder, or review for delisting &nbsp;|&nbsp; <b>Audience:</b> Formulary Manager & Brand Leads &nbsp;|&nbsp; <b>Coverage:</b> 2023\u20132026 &nbsp;|&nbsp; <b>Auto-Refresh:</b> 1m</div>\n  </div>\n  <div style=\"display: flex; gap: 8px;\">\n    <a href=\"/d/bi-channel-margin/channel-revenue-and-margin\" style=\"background: #22262E; color: #61AFFE; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3274D9;\">\ud83d\udcca Channel Margin</a>\n    <a href=\"/d/bi-hospital-forecast/hospital-forecast-vs-actual\" style=\"background: #22262E; color: #49DA9A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #299C46;\">\ud83c\udfe5 Hospital Demand</a>\n    <a href=\"/d/bi-fast-slow/fast-vs-slow-movers\" style=\"background: #22262E; color: #FADE2A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #EAB839;\">\u26a1 Fast / Slow</a>\n    <a href=\"/d/batch-ingestion/batch-ingestion-operations\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\udce6 Batch DE</a>\n    <a href=\"/d/streaming-ingestion/streaming-ingestion-operations\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\udce1 Streaming DE</a>\n    <a href=\"/d/storage-staging/storage-and-staging-health\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\uddc4\ufe0f Storage DE</a>\n    <a href=\"/d/query-performance/analytical-query-performance\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\u26a1 Query DE</a>\n  </div>\n</div>\n"
+      },
+      "transparent": true
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Active Medicines",
+      "description": "Total distinct current medicines in the formulary",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT active_medicines AS \"value\" FROM bi.kpi_summary",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3274D9"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 2
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Top-3 Revenue Share",
+      "description": "Revenue share of the top-3 medicines by quantity sold",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "WITH top3 AS (SELECT total_revenue FROM bi.medicine_360 WHERE total_revenue IS NOT NULL ORDER BY total_revenue DESC LIMIT 3) SELECT round((100.0 * sum(total_revenue) / nullif((SELECT sum(total_revenue) FROM bi.medicine_360), 0))::numeric, 1) AS \"value\" FROM top3",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#73BF69"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 2
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Bottom-10 Revenue Share",
+      "description": "Combined revenue share of the bottom-10 medicines",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "WITH bottom10 AS (SELECT total_revenue FROM bi.medicine_360 WHERE total_txns > 0 ORDER BY total_revenue ASC LIMIT 10) SELECT round((100.0 * sum(total_revenue) / nullif((SELECT sum(total_revenue) FROM bi.medicine_360), 0))::numeric, 1) AS \"value\" FROM bottom10",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#EAB839"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 2
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Overall Margin %",
+      "description": "Target: \u2265 35%. Portfolio-wide gross margin",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT overall_margin_pct AS \"value\" FROM bi.kpi_summary",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E02F44",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 30
+              },
+              {
+                "color": "#73BF69",
+                "value": 35
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        }
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 2
+      }
+    },
+    {
+      "id": 10,
+      "type": "barchart",
+      "title": "Top 10 Medicines by Quantity Sold",
+      "description": "Highest-volume medicines sorted by packs sold",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT CASE WHEN med_name IS NULL OR med_name = '' THEN 'Unknown' ELSE med_name END AS \"Medicine\", total_txns AS \"Quantity Sold (packs)\" FROM bi.medicine_360 WHERE total_txns > 0 AND ('$disease_category' = 'ALL' OR disease_category = '$disease_category') ORDER BY total_txns DESC LIMIT 10",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3274D9"
+          },
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "barWidth": 0.65,
+        "showValue": "always",
+        "stacking": "none",
+        "legend": {
+          "displayMode": "hidden"
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "xTickLabelRotation": 0,
+        "xField": "Medicine"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      }
+    },
+    {
+      "id": 11,
+      "type": "barchart",
+      "title": "Bottom 10 Medicines by Quantity Sold",
+      "description": "Lowest-volume medicines \u2014 candidates for review or delisting",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT CASE WHEN med_name IS NULL OR med_name = '' THEN 'Unknown' ELSE med_name END AS \"Medicine\", total_txns AS \"Quantity Sold (packs)\" FROM bi.medicine_360 WHERE total_txns > 0 AND ('$disease_category' = 'ALL' OR disease_category = '$disease_category') ORDER BY total_txns ASC LIMIT 10",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#EAB839"
+          },
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "barWidth": 0.65,
+        "showValue": "always",
+        "stacking": "none",
+        "legend": {
+          "displayMode": "hidden"
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "xTickLabelRotation": 0,
+        "xField": "Medicine"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      }
+    },
+    {
+      "id": 20,
+      "type": "table",
+      "title": "Medicine 360\u00b0 View",
+      "description": "Cross-fact medicine profile: commercial revenue, clinical demand, service level, and margin",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT CASE WHEN med_name IS NULL OR med_name = '' THEN 'Unknown' ELSE med_name END AS \"Medicine\", CASE WHEN disease_category IS NULL OR disease_category = '' THEN 'Unclassified' ELSE disease_category END AS \"Disease Category\", CASE WHEN therapeutic_class IS NULL OR therapeutic_class = '' THEN 'Unclassified' ELSE therapeutic_class END AS \"Therapeutic Class\", cold_chain_flag AS \"Cold Chain\", total_txns AS \"Transactions\", round(total_revenue::numeric, 0) AS \"Revenue ($)\", round(avg_margin_pct::numeric, 1) AS \"Margin %\", total_forecast AS \"Forecast Packs\", total_unfulfilled AS \"Unfulfilled\", round(avg_service_level::numeric, 1) AS \"Service Level %\", total_stockout_days AS \"Stockout Days\" FROM bi.medicine_360 WHERE total_txns > 0 AND ('$disease_category' = 'ALL' OR disease_category = '$disease_category') AND ('$therapeutic_class' = 'ALL' OR therapeutic_class = '$therapeutic_class') ORDER BY total_revenue DESC",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Revenue ($)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Margin %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#E02F44",
+                      "value": null
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 30
+                    },
+                    {
+                      "color": "#73BF69",
+                      "value": 35
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Service Level %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#E02F44",
+                      "value": null
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 90
+                    },
+                    {
+                      "color": "#73BF69",
+                      "value": 95
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      }
+    },
+    {
+      "id": 99,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "*KPI Definitions: Fast Mover = Top-3 by qty per class | Slow Mover = Bottom-3 by qty per class | Margin % = (Net Sales \u2212 COGS) \u00f7 Net Sales \u00d7 100 | Source: bi.medicine_360, bi.top_movers*"
+      },
+      "transparent": true
+    }
+  ],
+  "annotations": {
+    "list": []
+  },
+  "time": {
+    "from": "now-3y",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d",
+      "90d",
+      "1y",
+      "3y",
+      "5y"
+    ]
+  },
+  "liveNow": false
+}

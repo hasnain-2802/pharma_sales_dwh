@@ -10,7 +10,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
     PYTHONPATH: /opt/airflow
     STAGING_DB_URL: postgresql+psycopg2://airflow:airflow@postgres:5432/staging
-    DUCKDB_PATH: /opt/airflow/data/duckdb/sdi_mart.duckdb
+    DUCKDB_PATH: /opt/airflow/data/warehouse/sdi.duckdb
   volumes:
     - ./dags:/opt/airflow/dags
     - ./src:/opt/airflow/src
