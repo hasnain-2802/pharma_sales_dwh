@@ -1,422 +1,627 @@
 {
-  "id": null,
-  "uid": "storage-staging",
-  "title": "Storage & Staging Health",
-  "description": "Pharmaceutical Cold Supply Chain \u2014 Relational Staging Storage, Schema Footprint, and Integrity Metrics",
-  "tags": [
-    "pharma",
-    "staging",
-    "storage",
-    "database",
-    "operations"
-  ],
-  "timezone": "browser",
-  "schemaVersion": 39,
-  "version": 2,
-  "refresh": "30s",
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Pharmaceutical Cold Supply Chain — Relational Staging Storage, Schema Footprint, and Integrity Metrics",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "links": [],
+  "liveNow": false,
   "panels": [
     {
-      "id": 1,
-      "type": "text",
-      "title": "Operational Overview & Staging Parameters",
       "gridPos": {
         "h": 3,
         "w": 24,
         "x": 0,
         "y": 0
       },
+      "id": 1,
       "options": {
-        "mode": "html",
-        "content": "\n<div style=\"display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #181B1F 0%, #1e2228 100%); padding: 10px 18px; border-radius: 6px; border-left: 4px solid #3274D9; margin-bottom: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);\">\n  <div>\n    <div style=\"font-size: 16px; font-weight: 600; color: #FFFFFF; letter-spacing: 0.3px;\">PostgreSQL Staging Health & Storage Footprint</div>\n    <div style=\"font-size: 12px; color: #8E8E93; margin-top: 2px;\"><b>Primary Decision:</b> Track physical disk allocation, table row counts, and date coverage integrity &nbsp;|&nbsp; <b>Audience:</b> Database Administrators & SRE &nbsp;|&nbsp; <b>Coverage:</b> 2023\u20132026 &nbsp;|&nbsp; <b>Auto-Refresh:</b> 1m</div>\n  </div>\n  <div style=\"display: flex; gap: 8px;\">\n    <a href=\"/d/bi-channel-margin/channel-revenue-and-margin\" style=\"background: #22262E; color: #61AFFE; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3274D9;\">\ud83d\udcca Channel Margin</a>\n    <a href=\"/d/bi-hospital-forecast/hospital-forecast-vs-actual\" style=\"background: #22262E; color: #49DA9A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #299C46;\">\ud83c\udfe5 Hospital Demand</a>\n    <a href=\"/d/bi-fast-slow/fast-vs-slow-movers\" style=\"background: #22262E; color: #FADE2A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #EAB839;\">\u26a1 Fast / Slow</a>\n    <a href=\"/d/batch-ingestion/batch-ingestion-operations\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\udce6 Batch DE</a>\n    <a href=\"/d/streaming-ingestion/streaming-ingestion-operations\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\udce1 Streaming DE</a>\n    <a href=\"/d/storage-staging/storage-and-staging-health\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\uddc4\ufe0f Storage DE</a>\n    <a href=\"/d/query-performance/analytical-query-performance\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\u26a1 Query DE</a>\n  </div>\n</div>\n"
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "\n<div style=\"display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #181B1F 0%, #1e2228 100%); padding: 10px 18px; border-radius: 6px; border-left: 4px solid #3274D9; margin-bottom: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);\">\n  <div>\n    <div style=\"font-size: 16px; font-weight: 600; color: #FFFFFF; letter-spacing: 0.3px;\">PostgreSQL Staging Health & Storage Footprint</div>\n    <div style=\"font-size: 12px; color: #8E8E93; margin-top: 2px;\"><b>Primary Decision:</b> Track physical disk allocation, table row counts, and date coverage integrity &nbsp;|&nbsp; <b>Audience:</b> Database Administrators & SRE &nbsp;|&nbsp; <b>Coverage:</b> 2023–2026 &nbsp;|&nbsp; <b>Auto-Refresh:</b> 1m</div>\n  </div>\n  <div style=\"display: flex; gap: 8px;\">\n    <a href=\"/d/bi-channel-margin/channel-revenue-and-margin\" style=\"background: #22262E; color: #61AFFE; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3274D9;\">📊 Channel Margin</a>\n    <a href=\"/d/bi-hospital-forecast/hospital-forecast-vs-actual\" style=\"background: #22262E; color: #49DA9A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #299C46;\">🏥 Hospital Demand</a>\n    <a href=\"/d/bi-fast-slow/fast-vs-slow-movers\" style=\"background: #22262E; color: #FADE2A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #EAB839;\">⚡ Fast / Slow</a>\n    <a href=\"/d/batch-ingestion/batch-ingestion-operations\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">📦 Batch DE</a>\n    <a href=\"/d/streaming-ingestion/streaming-ingestion-operations\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">📡 Streaming DE</a>\n    <a href=\"/d/storage-staging/storage-and-staging-health\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">🗄️ Storage DE</a>\n    <a href=\"/d/query-performance/analytical-query-performance\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">⚡ Query DE</a>\n  </div>\n</div>\n",
+        "mode": "html"
       },
-      "transparent": true
+      "pluginVersion": "10.4.2",
+      "title": "Operational Overview & Staging Parameters",
+      "transparent": true,
+      "type": "text"
     },
     {
-      "id": 100,
-      "type": "row",
-      "title": "Executive Staging Metrics & Footprint",
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 3
-      }
+      },
+      "id": 100,
+      "title": "Executive Staging Metrics & Footprint",
+      "type": "row"
     },
     {
-      "id": 2,
-      "type": "stat",
-      "title": "Total Staged Records",
-      "description": "Total cumulative record volume across all enterprise staging tables",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
-      "targets": [
-        {
-          "rawSql": "SELECT sum(cnt) AS \"Total Records\" FROM (SELECT count(*) AS cnt FROM stg.master_data UNION ALL SELECT count(*) FROM stg.manufacturing_data UNION ALL SELECT count(*) FROM stg.manufacturer_delivery_data UNION ALL SELECT count(*) FROM stg.warehouse_data UNION ALL SELECT count(*) FROM stg.pharmacy_sales_data UNION ALL SELECT count(*) FROM stg.hospital_demand_data UNION ALL SELECT count(*) FROM stg.iot_streaming_data) t",
-          "format": "table",
-          "refId": "A"
-        }
-      ],
+      "description": "Total cumulative record volume across all enterprise staging tables",
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
           "color": {
-            "mode": "fixed",
-            "fixedColor": "#5794F2"
-          }
+            "fixedColor": "#5794F2",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
         },
         "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "area",
-        "textMode": "auto",
-        "text": {
-          "titleSize": 12,
-          "valueSize": 28
-        }
       },
       "gridPos": {
         "h": 4,
         "w": 5,
         "x": 0,
         "y": 4
-      }
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT sum(cnt) AS \"Total Records\" FROM (SELECT count(*) AS cnt FROM stg.master_data UNION ALL SELECT count(*) FROM stg.manufacturing_data UNION ALL SELECT count(*) FROM stg.manufacturer_delivery_data UNION ALL SELECT count(*) FROM stg.warehouse_data UNION ALL SELECT count(*) FROM stg.pharmacy_sales_data UNION ALL SELECT count(*) FROM stg.hospital_demand_data UNION ALL SELECT count(*) FROM stg.iot_streaming_data) t",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Staged Records",
+      "type": "stat"
     },
     {
-      "id": 3,
-      "type": "stat",
-      "title": "Total Storage Footprint",
-      "description": "Total physical disk footprint occupied by stg schema tables and indexes",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
-      "targets": [
-        {
-          "rawSql": "SELECT round(sum(pg_total_relation_size('stg.' || tablename)) / (1024.0 * 1024.0), 1) AS \"Footprint (MB)\" FROM pg_tables WHERE schemaname = 'stg'",
-          "format": "table",
-          "refId": "A"
-        }
-      ],
+      "description": "Total physical disk footprint occupied by stg schema tables and indexes",
       "fieldConfig": {
         "defaults": {
-          "unit": "decmbytes",
           "color": {
-            "mode": "fixed",
-            "fixedColor": "#73BF69"
-          }
+            "fixedColor": "#73BF69",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "decmbytes"
         },
         "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "area",
-        "textMode": "auto",
-        "text": {
-          "titleSize": 12,
-          "valueSize": 28
-        }
       },
       "gridPos": {
         "h": 4,
         "w": 5,
         "x": 5,
         "y": 4
-      }
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT round(sum(pg_total_relation_size('stg.' || tablename)) / (1024.0 * 1024.0), 1) AS \"Footprint (MB)\" FROM pg_tables WHERE schemaname = 'stg'",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Storage Footprint",
+      "type": "stat"
     },
     {
-      "id": 4,
-      "type": "stat",
-      "title": "Active Tables",
-      "description": "Total active enterprise relational tables populated in the stg schema",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
-      "targets": [
-        {
-          "rawSql": "SELECT count(*) AS \"Staging Tables\" FROM pg_tables WHERE schemaname = 'stg'",
-          "format": "table",
-          "refId": "A"
-        }
-      ],
+      "description": "Total active enterprise relational tables populated in the stg schema",
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
           "color": {
-            "mode": "fixed",
-            "fixedColor": "#3274D9"
-          }
+            "fixedColor": "#3274D9",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
         },
         "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "area",
-        "textMode": "auto",
-        "text": {
-          "titleSize": 12,
-          "valueSize": 28
-        }
       },
       "gridPos": {
         "h": 4,
         "w": 4,
         "x": 10,
         "y": 4
-      }
-    },
-    {
-      "id": 5,
-      "type": "stat",
-      "title": "Date Coverage Span",
-      "description": "Temporal date boundaries represented within historical pharmacy sales records",
-      "datasource": {
-        "type": "postgres",
-        "uid": "Staging-Postgres"
       },
-      "targets": [
-        {
-          "rawSql": "SELECT (max(salesdate::date) - min(salesdate::date)) AS \"Coverage (Days)\", concat(min(salesdate::date), ' to ', max(salesdate::date)) AS \"Span\" FROM stg.pharmacy_sales_data",
-          "format": "table",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "#20B2AA"
-          },
-          "unit": "d",
-          "custom": {}
-        },
-        "overrides": []
-      },
+      "id": 4,
       "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/^Coverage \\(Days\\)$/"
+          "fields": "",
+          "values": false
         },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value_and_name",
+        "showPercentChange": false,
         "text": {
           "titleSize": 12,
-          "valueSize": 26
+          "valueSize": 28
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT count(*) AS \"Staging Tables\" FROM pg_tables WHERE schemaname = 'stg'",
+          "refId": "A"
         }
+      ],
+      "title": "Active Tables",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "description": "Temporal date boundaries represented within historical pharmacy sales records",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#20B2AA",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "d"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 4,
         "w": 5,
         "x": 14,
         "y": 4
-      }
-    },
-    {
-      "id": 6,
-      "type": "stat",
-      "title": "Data Freshness",
-      "description": "Timestamp of most recent batch committed into the staging repository",
-      "datasource": {
-        "type": "postgres",
-        "uid": "Staging-Postgres"
       },
-      "targets": [
-        {
-          "rawSql": "SELECT round(extract(epoch from (now() - max(end_ts)))) AS \"Lag (Seconds)\", to_char(max(end_ts), 'YYYY-MM-DD HH24:MI:SS') AS \"Last Run\" FROM ops.batch_ingestion_log",
-          "format": "table",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "#EAB839"
-          },
-          "unit": "s",
-          "custom": {}
-        },
-        "overrides": []
-      },
+      "id": 5,
       "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/^Lag \\(Seconds\\)$/"
+          "fields": "/^Coverage \\(Days\\)$/",
+          "values": false
         },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value_and_name",
+        "showPercentChange": false,
         "text": {
           "titleSize": 12,
           "valueSize": 26
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT (max(salesdate::date) - min(salesdate::date)) AS \"Coverage (Days)\", concat(min(salesdate::date), ' to ', max(salesdate::date)) AS \"Span\" FROM stg.pharmacy_sales_data",
+          "refId": "A"
         }
+      ],
+      "title": "Date Coverage Span",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "description": "Timestamp of most recent batch committed into the staging repository",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#EAB839",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 4,
         "w": 5,
         "x": 19,
         "y": 4
-      }
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Lag \\(Seconds\\)$/",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {
+          "titleSize": 12,
+          "valueSize": 26
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT round(extract(epoch from (now() - max(end_ts)))) AS \"Lag (Seconds)\", to_char(max(end_ts), 'YYYY-MM-DD HH24:MI:SS') AS \"Last Run\" FROM ops.batch_ingestion_log",
+          "refId": "A"
+        }
+      ],
+      "title": "Data Freshness",
+      "type": "stat"
     },
     {
-      "id": 101,
-      "type": "row",
-      "title": "Source Volume & Physical Footprint Distribution",
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 8
-      }
+      },
+      "id": 101,
+      "title": "Source Volume & Physical Footprint Distribution",
+      "type": "row"
     },
     {
-      "id": 10,
-      "type": "bargauge",
-      "title": "Staged Record Volume by Source Table: Pharmacy sales and IoT telemetry constitute 85% of volume",
-      "description": "Sorted horizontal bar chart displaying total committed rows per table. Strictly starts at zero baseline.",
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "Staging-Postgres"
       },
-      "targets": [
-        {
-          "rawSql": "SELECT 'Pharmacy Sales' as \"Source Table\", count(*) as \"Record Count\" FROM stg.pharmacy_sales_data UNION ALL SELECT 'IoT Streaming', count(*) FROM stg.iot_streaming_data UNION ALL SELECT 'Warehouse Inventory', count(*) FROM stg.warehouse_data UNION ALL SELECT 'Hospital Demand', count(*) FROM stg.hospital_demand_data UNION ALL SELECT 'Manufacturer Delivery', count(*) FROM stg.manufacturer_delivery_data UNION ALL SELECT 'Manufacturing Orders', count(*) FROM stg.manufacturing_data UNION ALL SELECT 'Product Master', count(*) FROM stg.master_data ORDER BY \"Record Count\" DESC",
-          "format": "table",
-          "refId": "A"
-        }
-      ],
+      "description": "Sorted horizontal bar chart displaying total committed rows per table. Strictly starts at zero baseline.",
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
           "color": {
             "mode": "palette-classic"
           },
-          "custom": {},
-          "min": 0
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
         },
         "overrides": []
-      },
-      "options": {
-        "orientation": "horizontal",
-        "displayMode": "gradient",
-        "showUnfilled": true,
-        "minVizWidth": 0,
-        "minVizHeight": 10,
-        "valueMode": "color"
       },
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
         "y": 9
-      }
+      },
+      "id": 10,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "Staging-Postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH p(pfx) AS (VALUES ('01'),('02'),('03'),('04'),('05'),('06'),('07')),\r\nl AS (\r\n  SELECT LEFT(source_name, 2) AS pfx, MIN(source_name) AS source_name,\r\n         SUM(rows_loaded) AS n\r\n  FROM ops.batch_ingestion_log\r\n  WHERE status = 'SUCCESS'\r\n  GROUP BY 1\r\n)\r\nSELECT COALESCE(l.source_name, p.pfx || ' (not loaded)') AS \"Source\",\r\n       COALESCE(l.n, 0)::float AS \"Rows\"\r\nFROM p LEFT JOIN l ON l.pfx = p.pfx\r\nORDER BY 2 DESC",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "Staged Record Volume by Source Table: Pharmacy sales and IoT telemetry constitute 85% of volume",
+      "type": "bargauge"
     },
     {
-      "id": 11,
-      "type": "bargauge",
-      "title": "Storage Footprint by Table (MB): Sales table leads footprint at ~110MB total on-disk allocation",
-      "description": "Total relation footprint (table data + indexes) in megabytes per staging entity",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
-      "targets": [
-        {
-          "rawSql": "SELECT 'Pharmacy Sales' as \"Source Table\", round(pg_total_relation_size('stg.pharmacy_sales_data') / (1024.0 * 1024.0), 2) as \"Footprint (MB)\" UNION ALL SELECT 'IoT Streaming', round(pg_total_relation_size('stg.iot_streaming_data') / (1024.0 * 1024.0), 2) UNION ALL SELECT 'Warehouse Inventory', round(pg_total_relation_size('stg.warehouse_data') / (1024.0 * 1024.0), 2) UNION ALL SELECT 'Hospital Demand', round(pg_total_relation_size('stg.hospital_demand_data') / (1024.0 * 1024.0), 2) UNION ALL SELECT 'Manufacturer Delivery', round(pg_total_relation_size('stg.manufacturer_delivery_data') / (1024.0 * 1024.0), 2) UNION ALL SELECT 'Manufacturing Orders', round(pg_total_relation_size('stg.manufacturing_data') / (1024.0 * 1024.0), 2) UNION ALL SELECT 'Product Master', round(pg_total_relation_size('stg.master_data') / (1024.0 * 1024.0), 2) ORDER BY \"Footprint (MB)\" DESC",
-          "format": "table",
-          "refId": "A"
-        }
-      ],
+      "description": "Total relation footprint (table data + indexes) in megabytes per staging entity",
       "fieldConfig": {
         "defaults": {
-          "unit": "decmbytes",
           "color": {
             "mode": "palette-classic"
           },
-          "custom": {},
-          "min": 0
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "decmbytes"
         },
         "overrides": []
-      },
-      "options": {
-        "orientation": "horizontal",
-        "displayMode": "gradient",
-        "showUnfilled": true,
-        "minVizWidth": 0,
-        "minVizHeight": 10,
-        "valueMode": "color"
       },
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
         "y": 9
-      }
+      },
+      "id": 11,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT 'Pharmacy Sales' as \"Source Table\", round(pg_total_relation_size('stg.pharmacy_sales_data') / (1024.0 * 1024.0), 2) as \"Footprint (MB)\" UNION ALL SELECT 'IoT Streaming', round(pg_total_relation_size('stg.iot_streaming_data') / (1024.0 * 1024.0), 2) UNION ALL SELECT 'Warehouse Inventory', round(pg_total_relation_size('stg.warehouse_data') / (1024.0 * 1024.0), 2) UNION ALL SELECT 'Hospital Demand', round(pg_total_relation_size('stg.hospital_demand_data') / (1024.0 * 1024.0), 2) UNION ALL SELECT 'Manufacturer Delivery', round(pg_total_relation_size('stg.manufacturer_delivery_data') / (1024.0 * 1024.0), 2) UNION ALL SELECT 'Manufacturing Orders', round(pg_total_relation_size('stg.manufacturing_data') / (1024.0 * 1024.0), 2) UNION ALL SELECT 'Product Master', round(pg_total_relation_size('stg.master_data') / (1024.0 * 1024.0), 2) ORDER BY \"Footprint (MB)\" DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Storage Footprint by Table (MB): Sales table leads footprint at ~110MB total on-disk allocation",
+      "type": "bargauge"
     },
     {
-      "id": 102,
-      "type": "row",
-      "title": "Ingestion Quality & Staging Entity Audit",
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 18
-      }
+      },
+      "id": 102,
+      "title": "Ingestion Quality & Staging Entity Audit",
+      "type": "row"
     },
     {
-      "id": 20,
-      "type": "barchart",
-      "title": "Cumulative Rows Loaded vs Quarantined by Ingestion Source",
-      "description": "Validation compliance: Compares committed records against rejected quarantine packets per source feed",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
-      "targets": [
-        {
-          "rawSql": "SELECT source_name as \"Source Stream\", sum(rows_loaded) as \"Loaded\", sum(rows_rejected) as \"Quarantined\" FROM ops.batch_ingestion_log GROUP BY source_name ORDER BY \"Loaded\" DESC",
-          "format": "table",
-          "refId": "A"
-        }
-      ],
+      "description": "Validation compliance: Compares committed records against rejected quarantine packets per source feed",
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
           "color": {
             "mode": "palette-classic"
           },
-          "custom": {}
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
         },
         "overrides": [
           {
@@ -451,49 +656,64 @@
           }
         ]
       },
-      "options": {
-        "orientation": "horizontal",
-        "barWidth": 0.6,
-        "showValue": "always",
-        "stacking": "none",
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        },
-        "xTickLabelRotation": 0,
-        "xField": "Source Stream"
-      },
       "gridPos": {
         "h": 9,
         "w": 10,
         "x": 0,
         "y": 19
-      }
+      },
+      "id": 20,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.6,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "horizontal",
+        "showValue": "always",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        },
+        "xField": "Source Stream",
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT source_name as \"Source Stream\", sum(rows_loaded) as \"Loaded\", sum(rows_rejected) as \"Quarantined\" FROM ops.batch_ingestion_log GROUP BY source_name ORDER BY \"Loaded\" DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Cumulative Rows Loaded vs Quarantined by Ingestion Source",
+      "type": "barchart"
     },
     {
-      "id": 21,
-      "type": "table",
-      "title": "Staging Schema Inventory & Entity Storage Matrix",
-      "description": "Comprehensive physical storage parameters, table size, index size, and record tallies",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
-      "targets": [
-        {
-          "rawSql": "SELECT tablename AS \"Table Entity\", CASE tablename WHEN 'pharmacy_sales_data' THEN (SELECT count(*) FROM stg.pharmacy_sales_data) WHEN 'iot_streaming_data' THEN (SELECT count(*) FROM stg.iot_streaming_data) WHEN 'warehouse_data' THEN (SELECT count(*) FROM stg.warehouse_data) WHEN 'hospital_demand_data' THEN (SELECT count(*) FROM stg.hospital_demand_data) WHEN 'manufacturer_delivery_data' THEN (SELECT count(*) FROM stg.manufacturer_delivery_data) WHEN 'manufacturing_data' THEN (SELECT count(*) FROM stg.manufacturing_data) WHEN 'master_data' THEN (SELECT count(*) FROM stg.master_data) ELSE 0 END AS \"Total Rows\", pg_size_pretty(pg_total_relation_size('stg.' || tablename)) AS \"Disk Allocation\", pg_size_pretty(pg_indexes_size('stg.' || tablename)) AS \"Index Size\", 'Active Verified' AS \"Integrity Status\" FROM pg_tables WHERE schemaname = 'stg' ORDER BY pg_total_relation_size('stg.' || tablename) DESC",
-          "format": "table",
-          "refId": "A"
-        }
-      ],
+      "description": "Comprehensive physical storage parameters, table size, index size, and record tallies",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -521,31 +741,49 @@
           }
         ]
       },
-      "options": {
-        "showHeader": true,
-        "cellHeight": "sm",
-        "footer": {
-          "show": true,
-          "reducer": [
-            "sum"
-          ],
-          "fields": [
-            "Total Rows"
-          ]
-        }
-      },
       "gridPos": {
         "h": 9,
         "w": 14,
         "x": 10,
         "y": 19
-      }
+      },
+      "id": 21,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": [
+            "Total Rows"
+          ],
+          "reducer": [
+            "sum"
+          ],
+          "show": true
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.4.2",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT tablename AS \"Table Entity\", CASE tablename WHEN 'pharmacy_sales_data' THEN (SELECT count(*) FROM stg.pharmacy_sales_data) WHEN 'iot_streaming_data' THEN (SELECT count(*) FROM stg.iot_streaming_data) WHEN 'warehouse_data' THEN (SELECT count(*) FROM stg.warehouse_data) WHEN 'hospital_demand_data' THEN (SELECT count(*) FROM stg.hospital_demand_data) WHEN 'manufacturer_delivery_data' THEN (SELECT count(*) FROM stg.manufacturer_delivery_data) WHEN 'manufacturing_data' THEN (SELECT count(*) FROM stg.manufacturing_data) WHEN 'master_data' THEN (SELECT count(*) FROM stg.master_data) ELSE 0 END AS \"Total Rows\", pg_size_pretty(pg_total_relation_size('stg.' || tablename)) AS \"Disk Allocation\", pg_size_pretty(pg_indexes_size('stg.' || tablename)) AS \"Index Size\", 'Active Verified' AS \"Integrity Status\" FROM pg_tables WHERE schemaname = 'stg' ORDER BY pg_total_relation_size('stg.' || tablename) DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Staging Schema Inventory & Entity Storage Matrix",
+      "type": "table"
     }
   ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": [
+    "pharma",
+    "staging",
+    "storage",
+    "database",
+    "operations"
+  ],
   "templating": {
-    "list": []
-  },
-  "annotations": {
     "list": []
   },
   "time": {
@@ -576,5 +814,9 @@
       "5y"
     ]
   },
-  "liveNow": false
+  "timezone": "browser",
+  "title": "Storage & Staging Health",
+  "uid": "storage-staging",
+  "version": 7,
+  "weekStart": ""
 }
