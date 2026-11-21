@@ -1,7 +1,6 @@
 # Pharmaceutical Cold Supply Chain — DWH + BI Pipeline
 
-> Intelligent Data Architectures — Fall 2026 Course Project  
-> An automated Data Warehouse + Business Intelligence pipeline built with Apache Airflow
+Team Members: Hasnain Abbas (31593), Junaid Ahmed (30715)
 
 ## Architecture
 
