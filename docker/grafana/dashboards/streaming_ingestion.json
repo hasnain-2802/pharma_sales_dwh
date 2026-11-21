@@ -1,6 +1,19 @@
 {
   "annotations": {
-    "list": []
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
   },
   "description": "Streaming ingestion: throughput, latency, dropped records (latest simulation run)",
   "editable": true,
@@ -10,41 +23,38 @@
   "liveNow": false,
   "panels": [
     {
-      "id": 1,
-      "type": "text",
-      "title": "",
-      "transparent": true,
       "gridPos": {
         "h": 3,
         "w": 24,
         "x": 0,
         "y": 0
       },
+      "id": 1,
       "options": {
-        "mode": "html",
-        "content": "<div style=\"display:flex;justify-content:space-between;align-items:center;padding:8px 16px;border-left:4px solid #3274D9;\"><div><div style=\"font-size:16px;font-weight:600;\">Streaming Ingestion Operations</div><div style=\"font-size:12px;color:#8E8E93;\"><b>Decision:</b> Is the stream keeping pace, fast, and clean? &nbsp;|&nbsp; <b>Scope:</b> latest simulation run &nbsp;|&nbsp; <b>Source:</b> simulated sales events, 1-second micro-batches</div></div><div style=\"display:flex;gap:6px;\"><a href=\"/d/bi-channel-margin/channel-revenue-and-margin\" style=\"background:#22262E;color:#B3BAC5;padding:4px 10px;border-radius:4px;font-size:11px;text-decoration:none;border:1px solid #3A3F4B;\">Channel Margin</a><a href=\"/d/bi-hospital-forecast/hospital-forecast-vs-actual\" style=\"background:#22262E;color:#B3BAC5;padding:4px 10px;border-radius:4px;font-size:11px;text-decoration:none;border:1px solid #3A3F4B;\">Hospital Demand</a><a href=\"/d/bi-fast-slow/fast-vs-slow-movers\" style=\"background:#22262E;color:#B3BAC5;padding:4px 10px;border-radius:4px;font-size:11px;text-decoration:none;border:1px solid #3A3F4B;\">Fast / Slow</a><a href=\"/d/batch-ingestion/batch-ingestion-operations\" style=\"background:#22262E;color:#B3BAC5;padding:4px 10px;border-radius:4px;font-size:11px;text-decoration:none;border:1px solid #3A3F4B;\">Batch</a><a href=\"/d/streaming-ingestion/streaming-ingestion-operations\" style=\"background:#22262E;color:#B3BAC5;padding:4px 10px;border-radius:4px;font-size:11px;text-decoration:none;border:1px solid #3A3F4B;\">Streaming</a><a href=\"/d/storage-staging/storage-and-staging-health\" style=\"background:#22262E;color:#B3BAC5;padding:4px 10px;border-radius:4px;font-size:11px;text-decoration:none;border:1px solid #3A3F4B;\">Storage</a><a href=\"/d/query-performance/analytical-query-performance\" style=\"background:#22262E;color:#B3BAC5;padding:4px 10px;border-radius:4px;font-size:11px;text-decoration:none;border:1px solid #3A3F4B;\">Query</a></div></div>"
-      }
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "<div style=\"display:flex;justify-content:space-between;align-items:center;padding:8px 16px;border-left:4px solid #3274D9;\"><div><div style=\"font-size:16px;font-weight:600;\">Streaming Ingestion Operations</div><div style=\"font-size:12px;color:#8E8E93;\"><b>Decision:</b> Is the stream keeping pace, fast, and clean? &nbsp;|&nbsp; <b>Scope:</b> latest simulation run &nbsp;|&nbsp; <b>Source:</b> simulated sales events, 1-second micro-batches</div></div><div style=\"display:flex;gap:6px;\"><a href=\"/d/bi-channel-margin/channel-revenue-and-margin\" style=\"background:#22262E;color:#B3BAC5;padding:4px 10px;border-radius:4px;font-size:11px;text-decoration:none;border:1px solid #3A3F4B;\">Channel Margin</a><a href=\"/d/bi-hospital-forecast/hospital-forecast-vs-actual\" style=\"background:#22262E;color:#B3BAC5;padding:4px 10px;border-radius:4px;font-size:11px;text-decoration:none;border:1px solid #3A3F4B;\">Hospital Demand</a><a href=\"/d/bi-fast-slow/fast-vs-slow-movers\" style=\"background:#22262E;color:#B3BAC5;padding:4px 10px;border-radius:4px;font-size:11px;text-decoration:none;border:1px solid #3A3F4B;\">Fast / Slow</a><a href=\"/d/batch-ingestion/batch-ingestion-operations\" style=\"background:#22262E;color:#B3BAC5;padding:4px 10px;border-radius:4px;font-size:11px;text-decoration:none;border:1px solid #3A3F4B;\">Batch</a><a href=\"/d/streaming-ingestion/streaming-ingestion-operations\" style=\"background:#22262E;color:#B3BAC5;padding:4px 10px;border-radius:4px;font-size:11px;text-decoration:none;border:1px solid #3A3F4B;\">Streaming</a><a href=\"/d/storage-staging/storage-and-staging-health\" style=\"background:#22262E;color:#B3BAC5;padding:4px 10px;border-radius:4px;font-size:11px;text-decoration:none;border:1px solid #3A3F4B;\">Storage</a><a href=\"/d/query-performance/analytical-query-performance\" style=\"background:#22262E;color:#B3BAC5;padding:4px 10px;border-radius:4px;font-size:11px;text-decoration:none;border:1px solid #3A3F4B;\">Query</a></div></div>",
+        "mode": "html"
+      },
+      "pluginVersion": "10.4.2",
+      "transparent": true,
+      "type": "text"
     },
     {
-      "id": 2,
-      "type": "stat",
-      "title": "Throughput (events/s)",
-      "description": "Total valid records ingested / stream duration in seconds (one micro-batch per second), latest run.",
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "Staging-Postgres"
       },
-      "gridPos": {
-        "h": 4,
-        "w": 5,
-        "x": 0,
-        "y": 3
-      },
+      "description": "Total valid records ingested / stream duration in seconds (one micro-batch per second), latest run.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 1,
           "mappings": [],
           "noValue": "No stream run logged yet. Run src.stream.simulate_stream",
           "thresholds": {
@@ -56,25 +66,34 @@
               }
             ]
           },
-          "unit": "none",
-          "decimals": 1
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 0,
+        "y": 3
+      },
+      "id": 2,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "textMode": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
           "fields": "",
           "values": false
-        }
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "datasource": {
@@ -84,31 +103,42 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT ROUND(SUM(events_in)::numeric / NULLIF(COUNT(*), 0), 1)::float AS \"Throughput (events/s)\" FROM  WHERE run_id = (SELECT run_id FROM ops.stream_ingestion_log ORDER BY batch_ts DESC LIMIT 1)",
-          "refId": "A"
+          "rawSql": "SELECT ROUND(SUM(events_in)::numeric / NULLIF(COUNT(*), 0), 1)::float AS \"Throughput (events/s)\"\r\nFROM ops.stream_ingestion_log\r\nWHERE run_id = (SELECT run_id FROM ops.stream_ingestion_log ORDER BY batch_ts DESC LIMIT 1)",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
         }
-      ]
+      ],
+      "title": "Throughput (events/s)",
+      "type": "stat"
     },
     {
-      "id": 3,
-      "type": "stat",
-      "title": "Mean latency (s)",
-      "description": "Mean of (DB insert time - event creation time), latest run.",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
-      "gridPos": {
-        "h": 4,
-        "w": 5,
-        "x": 5,
-        "y": 3
-      },
+      "description": "Mean of (DB insert time - event creation time), latest run.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 3,
           "mappings": [],
           "noValue": "No stream run logged yet. Run src.stream.simulate_stream",
           "thresholds": {
@@ -128,25 +158,34 @@
               }
             ]
           },
-          "unit": "s",
-          "decimals": 3
+          "unit": "s"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 5,
+        "y": 3
+      },
+      "id": 3,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "textMode": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
           "fields": "",
           "values": false
-        }
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "datasource": {
@@ -159,28 +198,22 @@
           "rawSql": "SELECT ROUND(AVG(avg_latency_s), 3)::float AS \"Mean latency (s)\" FROM ops.stream_ingestion_log WHERE run_id = (SELECT run_id FROM ops.stream_ingestion_log ORDER BY batch_ts DESC LIMIT 1)",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Mean latency (s)",
+      "type": "stat"
     },
     {
-      "id": 4,
-      "type": "stat",
-      "title": "P95 latency (s)",
-      "description": "Worst per-batch 95th percentile latency, latest run.",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
-      "gridPos": {
-        "h": 4,
-        "w": 5,
-        "x": 10,
-        "y": 3
-      },
+      "description": "Worst per-batch 95th percentile latency, latest run.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 3,
           "mappings": [],
           "noValue": "No stream run logged yet. Run src.stream.simulate_stream",
           "thresholds": {
@@ -200,25 +233,34 @@
               }
             ]
           },
-          "unit": "s",
-          "decimals": 3
+          "unit": "s"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 10,
+        "y": 3
+      },
+      "id": 4,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "textMode": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
           "fields": "",
           "values": false
-        }
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "datasource": {
@@ -231,28 +273,22 @@
           "rawSql": "SELECT ROUND(MAX(p95_latency_s), 3)::float AS \"P95 latency (s)\" FROM ops.stream_ingestion_log WHERE run_id = (SELECT run_id FROM ops.stream_ingestion_log ORDER BY batch_ts DESC LIMIT 1)",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "P95 latency (s)",
+      "type": "stat"
     },
     {
-      "id": 5,
-      "type": "stat",
-      "title": "Dropped records",
-      "description": "Rows rejected for a null key during stream validation (try/except counter), latest run.",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
-      "gridPos": {
-        "h": 4,
-        "w": 5,
-        "x": 15,
-        "y": 3
-      },
+      "description": "Rows rejected for a null key during stream validation (try/except counter), latest run.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 0,
           "mappings": [],
           "noValue": "No stream run logged yet. Run src.stream.simulate_stream",
           "thresholds": {
@@ -268,25 +304,34 @@
               }
             ]
           },
-          "unit": "none",
-          "decimals": 0
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 15,
+        "y": 3
+      },
+      "id": 5,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "textMode": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
           "fields": "",
           "values": false
-        }
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "datasource": {
@@ -299,29 +344,25 @@
           "rawSql": "SELECT COALESCE(SUM(events_dropped), 0)::int AS \"Dropped records\" FROM ops.stream_ingestion_log WHERE run_id = (SELECT run_id FROM ops.stream_ingestion_log ORDER BY batch_ts DESC LIMIT 1)",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Dropped records",
+      "type": "stat"
     },
     {
-      "id": 6,
-      "type": "stat",
-      "title": "Dropped %",
-      "description": "Dropped / (valid + dropped), latest run.",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 20,
-        "y": 3
-      },
+      "description": "Dropped / (valid + dropped), latest run.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 2,
           "mappings": [],
+          "max": 100,
+          "min": 0,
           "noValue": "No stream run logged yet. Run src.stream.simulate_stream",
           "thresholds": {
             "mode": "absolute",
@@ -340,25 +381,34 @@
               }
             ]
           },
-          "unit": "percent",
-          "decimals": 2
+          "unit": "percent"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 3
+      },
+      "id": 6,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "textMode": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
           "fields": "",
           "values": false
-        }
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "datasource": {
@@ -371,41 +421,57 @@
           "rawSql": "SELECT ROUND(100.0 * SUM(events_dropped) / NULLIF(SUM(events_in + events_dropped), 0), 2)::float AS \"Dropped %\" FROM ops.stream_ingestion_log WHERE run_id = (SELECT run_id FROM ops.stream_ingestion_log ORDER BY batch_ts DESC LIMIT 1)",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Dropped %",
+      "type": "stat"
     },
     {
-      "id": 7,
-      "type": "timeseries",
-      "title": "Stream throughput over the simulation run (events/s)",
-      "description": "Valid events committed per 1-second micro-batch across the latest run.",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 7
-      },
+      "description": "Valid events committed per 1-second micro-batch across the latest run.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
-          "mappings": [],
-          "min": 0,
-          "unit": "none",
-          "noValue": "No stream run logged yet. Run src.stream.simulate_stream",
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMin": 0,
+            "barAlignment": 0,
             "drawStyle": "line",
-            "lineWidth": 2,
             "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": true,
-            "axisSoftMin": 0,
-            "lineInterpolation": "linear"
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
+          "mappings": [],
+          "min": 0,
+          "noValue": "No stream run logged yet. Run src.stream.simulate_stream",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -414,12 +480,21 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
+      "id": 7,
       "options": {
         "legend": {
+          "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -441,41 +516,57 @@
           "rawSql": "SELECT batch_ts AS time, events_in AS \"Events/s\" FROM ops.stream_ingestion_log WHERE run_id = (SELECT run_id FROM ops.stream_ingestion_log ORDER BY batch_ts DESC LIMIT 1) ORDER BY 1",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Stream throughput over the simulation run (events/s)",
+      "type": "timeseries"
     },
     {
-      "id": 8,
-      "type": "timeseries",
-      "title": "End-to-end latency over the run (s)",
-      "description": "DB insert time minus event creation time, per micro-batch.",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 7
-      },
+      "description": "DB insert time minus event creation time, per micro-batch.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
-          "mappings": [],
-          "min": 0,
-          "unit": "s",
-          "noValue": "No stream run logged yet. Run src.stream.simulate_stream",
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMin": 0,
+            "barAlignment": 0,
             "drawStyle": "line",
-            "lineWidth": 2,
             "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": true,
-            "axisSoftMin": 0,
-            "lineInterpolation": "linear"
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
+          "mappings": [],
+          "min": 0,
+          "noValue": "No stream run logged yet. Run src.stream.simulate_stream",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -484,12 +575,21 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unit": "s"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
+      "id": 8,
       "options": {
         "legend": {
+          "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -511,29 +611,27 @@
           "rawSql": "SELECT batch_ts AS time, avg_latency_s::float AS \"Mean latency (s)\", p95_latency_s::float AS \"P95 latency (s)\" FROM ops.stream_ingestion_log WHERE run_id = (SELECT run_id FROM ops.stream_ingestion_log ORDER BY batch_ts DESC LIMIT 1) ORDER BY 1",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "End-to-end latency over the run (s)",
+      "type": "timeseries"
     },
     {
-      "id": 9,
-      "type": "table",
-      "title": "Last 10 micro-batches",
-      "description": "Most recent micro-batches across all runs.",
       "datasource": {
         "type": "postgres",
         "uid": "Staging-Postgres"
       },
-      "gridPos": {
-        "h": 9,
-        "w": 24,
-        "x": 0,
-        "y": 16
-      },
+      "description": "Most recent micro-batches across all runs.",
       "fieldConfig": {
         "defaults": {
-          "noValue": "No stream run logged yet. Run src.stream.simulate_stream",
           "custom": {
-            "align": "auto"
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
           },
+          "mappings": [],
+          "noValue": "No stream run logged yet. Run src.stream.simulate_stream",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -563,13 +661,26 @@
           }
         ]
       },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 9,
       "options": {
-        "showHeader": true,
         "cellHeight": "sm",
         "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
           "show": false
-        }
+        },
+        "showHeader": true
       },
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "datasource": {
@@ -579,13 +690,15 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "refId": "A",
-          "rawSql": "SELECT run_id AS \"Run\", batch_no AS \"Batch\", batch_ts AS \"Time\", events_in AS \"Events\", events_dropped AS \"Dropped\", ROUND(avg_latency_s, 3)::float AS \"Latency (s)\" FROM ops.stream_ingestion_log ORDER BY batch_ts DESC LIMIT 10"
+          "rawSql": "SELECT run_id AS \"Run\", batch_no AS \"Batch\", batch_ts AS \"Time\", events_in AS \"Events\", events_dropped AS \"Dropped\", ROUND(avg_latency_s, 3)::float AS \"Latency (s)\" FROM ops.stream_ingestion_log ORDER BY batch_ts DESC LIMIT 10",
+          "refId": "A"
         }
-      ]
+      ],
+      "title": "Last 10 micro-batches",
+      "type": "table"
     }
   ],
-  "refresh": "30s",
+  "refresh": "10s",
   "schemaVersion": 39,
   "tags": [
     "pharma",
@@ -596,12 +709,13 @@
     "list": []
   },
   "time": {
-    "from": "now-3y",
+    "from": "now-5m",
     "to": "now"
   },
+  "timepicker": {},
   "timezone": "browser",
   "title": "Streaming Ingestion Operations",
   "uid": "streaming-ingestion",
-  "version": 1,
+  "version": 9,
   "weekStart": ""
 }
