@@ -546,7 +546,7 @@
             "lastNotNull"
           ],
           "fields": "",
-          "values": false
+          "values": true
         },
         "showUnfilled": true,
         "sizing": "auto",
@@ -817,6 +817,6 @@
   "timezone": "browser",
   "title": "Storage & Staging Health",
   "uid": "storage-staging",
-  "version": 7,
+  "version": 8,
   "weekStart": ""
 }
