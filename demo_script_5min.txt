@@ -1,0 +1,271 @@
+================================================================================
+               5-MINUTE LIVE DEMONSTRATION SCRIPT (PHASE 1)
+         PHARMACEUTICAL COLD CHAIN DATA WAREHOUSE & BI PLATFORM
+             END-TO-END DATA ENGINEERING PIPELINE WALKTHROUGH
+================================================================================
+Target Duration : Exactly 5 Minutes (00:00 - 05:00)
+Audience        : Course Instructor & Evaluation Panel (Intelligent Data Architectures)
+Weightage Scope : Phase 1 (Datasets, Oversampling, Ingestion, Staging/Storage,
+                  Transformations/Star Schema, Query Optimization, BI Cockpits)
+Key Portals     : Airflow (http://localhost:8080) | Grafana (http://localhost:3000)
+                  FastAPI Ingestion (http://localhost:8001/docs)
+================================================================================
+
+
+--------------------------------------------------------------------------------
+CHRONOLOGICAL TIMELINE (PIPELINE-FIRST DEMO ORDER)
+--------------------------------------------------------------------------------
+00:00 - 00:35 | 1. Datasets & Cold Supply Chain Problem Statement
+00:35 - 01:15 | 2. Data Oversampling Layer (Airflow DAG 01 & Synthetic Engine)
+01:15 - 02:00 | 3. Data Ingestion Layer (API, File-Watcher & DE Dashboards 1 & 2)
+02:00 - 02:45 | 4. Storage & Staging Layer (PostgreSQL 15 & DE Dashboard 3)
+02:45 - 03:35 | 5. Transformation & Dimensional Modeling (DuckDB Star Schema & SCD-2)
+03:35 - 04:15 | 6. Analytical Query Layer & Query Optimization (DE Dashboard 4)
+04:15 - 05:00 | 7. Business Intelligence Layer & Live Refresh (3 Decision Cockpits)
+================================================================================
+
+
+================================================================================
+SECTION 1 | 00:00 - 00:35 | DATASETS & COLD CHAIN DOMAIN
+================================================================================
+[SCREEN TO DISPLAY]
+Open VS Code / Terminal showing the project folder structure or architecture slide.
+
+[WHAT TO POINT OUT]
+Point to the 7 core enterprise source datasets:
+1. `01_master_data.csv` (63 SKUs across 7 therapeutic categories; PK: MedicineID)
+2. `02_manufacturing_data.csv` (561 batch records; PK: ManufacturingOrderID)
+3. `03_manufacturer_delivery_data.csv` (999 shipment lines; PK: ShipmentID + LineNo)
+4. `04_warehouse_data.csv` (112,184 daily inventory lot snapshots across 6 warehouses)
+5. `05_pharmacy_sales_data.csv` (500,000 retail, hospital, and e-commerce transactions)
+6. `06_hospital_demand_data.csv` (27,216 monthly clinical demand logs across 12 hospitals)
+7. `07_iot_streaming_data.csv` (293,425 sensor telemetry readings; temp, humidity, GPS)
+
+[WHAT TO SAY]
+"Good morning, Professor and members of the panel. Today, I am demonstrating our fully
+automated, end-to-end Data Engineering and Business Intelligence platform for a
+Pharmaceutical Cold Supply Chain.
+
+In cold-chain logistics, maintaining strict 2°C to 8°C temperature envelopes is vital
+to patient safety. Our platform ingests all 7 enterprise datasets—spanning over
+933,000 baseline records—from factory production releases to pharmacy point-of-sale
+dispensation and live IoT sensor telemetry.
+
+For Phase 1, we have built the complete pipeline: automated synthetic oversampling,
+API and file-watcher ingestion, PostgreSQL staging, vectorized DuckDB dimensional
+transformations, query optimization benchmarking, and decision-focused BI cockpits."
+
+
+================================================================================
+SECTION 2 | 00:35 - 01:15 | DATA OVERSAMPLING LAYER (WEIGHTAGE: 2%)
+================================================================================
+[SCREEN TO DISPLAY]
+Switch to Browser Tab: Apache Airflow UI at `http://localhost:8080` -> Open `dag_01_generate`.
+
+[WHAT TO POINT OUT]
+- Point out `dag_01_generate` with parameters `cycle: 1` and `cycle: 2`.
+- Show that oversampling is modeled as an automated Airflow DAG, not an ad-hoc script.
+- Explain the 2 refresh cycles:
+  * Cycle 1: Generates 46,635 rows (Q3 2026) across all 7 source files (+10% volume).
+  * Cycle 2: Generates another 46,635 rows (Q4 2026), bringing total oversampled rows to 93,270.
+- Point out the intentional SCD Type 2 price mutations on 5 medicines:
+  MED005, MED012, MED025, MED040, and MED058.
+
+[WHAT TO SAY]
+"Starting with Pillar 1: the Data Oversampling Layer.
+To simulate a live 24/7 automated pipeline without emptying historical data, we developed
+a synthetic generator in Python and orchestrated it directly inside Airflow as `dag_01_generate`.
+
+Our generator produces two distinct business cycles: Cycle 1 adds 46,635 rows covering Q3 2026,
+and Cycle 2 adds another 46,635 rows for Q4 2026.
+It maintains strict referential integrity, injects cold-chain temperature excursions, and
+crucially, Cycle 2 introduces price mutations for 5 specific medicines. This directly tests
+our dimensional warehouse's ability to execute Slowly Changing Dimension Type 2 updates
+without corrupting historical sales margins."
+
+
+================================================================================
+SECTION 3 | 01:15 - 02:00 | DATA INGESTION LAYER (WEIGHTAGE: 2% + 2%)
+================================================================================
+[SCREEN TO DISPLAY]
+Browser Tab 1: Airflow UI -> Show `dag_02_ingestion` Graph View.
+Browser Tab 2: Grafana at `http://localhost:3000` -> Open `01 - Batch Ingestion Operations`.
+Then switch to `02 - Streaming Ingestion Operations`.
+
+[WHAT TO POINT OUT]
+1. In Airflow:
+   - Automated file-watcher mechanism running every 5 minutes (`*/5 * * * *`).
+   - Senses files in `data/landing/`, executes high-speed PostgreSQL bulk COPY (>50k rows/sec),
+     logs batch metrics, quarantines dirty rows, and atomically archives processed files.
+2. In Grafana Dashboard 1 (Batch Ingestion Operations):
+   - [RUBRIC CHART]: Horizontal Bar Chart displaying 'Load Duration (Seconds) per Source File'.
+     Show that `05_pharmacy_sales_data.csv` (500k rows) took 14.2s, while `01_master_data` took 0.08s.
+   - Total Staged Rows (>1,000,000) and 100% Batch Success Rate.
+3. In Grafana Dashboard 2 (Streaming Ingestion Operations):
+   - FastAPI microservice on port 8001 (`/ingest/iot`).
+   - [RUBRIC CHART]: Line chart tracking Stream Throughput (Events/Sec) stability.
+   - P95 End-to-End Latency (~420 ms) and quarantined/dropped record counter.
+
+[WHAT TO SAY]
+"Moving to Pillar 2: Data Ingestion. We built both batch and real-time streaming ingestion.
+
+For batch ingestion, Airflow's `dag_02_ingestion` uses an automated file-watcher running every
+5 minutes. It scans `data/landing/`, validates schemas, executes high-throughput bulk COPY
+into PostgreSQL at over 50,000 rows/second, segregates anomalies to a quarantine folder,
+and atomically archives processed files.
+
+On our 'Batch Ingestion Operations' dashboard, here is the rubric's recommended chart:
+a Horizontal Bar Chart of Load Duration per Source File. We can instantly spot that pharmacy
+sales is the pipeline bottleneck at 14.2 seconds, while master data loads in under 100 milliseconds.
+
+For streaming ingestion, we built a FastAPI microservice on port 8001 alongside an asynchronous
+pacing simulator. On our 'Streaming Ingestion Operations' dashboard, you can see live Stream
+Throughput in events per second, sub-500ms end-to-end latency, and real-time isolation of
+malformed records."
+
+
+================================================================================
+SECTION 4 | 02:00 - 02:45 | STORAGE & STAGING LAYER (WEIGHTAGE: 2%)
+================================================================================
+[SCREEN TO DISPLAY]
+Grafana -> Open `03 - Storage & Staging Health`.
+
+[WHAT TO POINT OUT]
+- Total Staged Records: Over 1.17 Million records across all 8 staging tables.
+- Storage Footprint: 549 MB physical PostgreSQL footprint.
+- Active Tables: 8 staging tables (`stg.*` plus rejected records).
+- Date Coverage Span: 1,338 Days (validating full 2023 to 2026 temporal coverage).
+- Data Freshness: Sub-minute latency.
+- [RUBRIC CHART]: Storage Breakdown showing volume and MB distribution across the 7 source tables,
+  highlighting that Pharmacy Sales and IoT constitute ~85% of total volume.
+
+[WHAT TO SAY]
+"Pillar 3 is the Storage and Staging Layer, built in PostgreSQL 15.
+All raw datasets are staged into dedicated `stg.*` tables, configured as UNLOGGED tables
+to eliminate write-ahead log overhead during bulk loads.
+
+Here on our 'Storage & Staging Health' dashboard:
+1. Total Staged Records stands at over 1.17 Million records.
+2. Physical storage footprint is tracked live at 549 Megabytes.
+3. Date Coverage Span proves that our 2023 through 2026 temporal range is 100% complete.
+4. And our Storage Breakdown chart clearly visualizes that sales transactions and IoT telemetry
+   consume over 85% of our storage footprint, confirming our infrastructure sizing."
+
+
+================================================================================
+SECTION 5 | 02:45 - 03:35 | TRANSFORMATIONS & STAR SCHEMA (WEIGHTAGE: 2.5%)
+================================================================================
+[SCREEN TO DISPLAY]
+Airflow UI -> `dag_03_transform` (or Terminal showing DuckDB SQL models).
+
+[WHAT TO POINT OUT]
+- Dual-Engine Architecture: PostgreSQL for staging -> DuckDB 1.1 for columnar OLAP.
+- Fact Constellation / Star Schema Layout:
+  1. `fact_pharmacy_sale` (Transactional Grain, 1 row = 1 sale item, ~550k rows).
+  2. `fact_hospital_demand` (Periodic Monthly Snapshot Grain, 1 row = 1 hospital-medicine-month).
+- 9 Conformed & Specialized Dimensions:
+  * `dim_medicine` with **SCD Type 2** (tracks wholesale/retail price changes with `IsCurrent`,
+    `ValidFromDate`, `ValidToDate`, and surrogate `MedicineKey`).
+  * `dim_date` (role-playing calendar dimension for Sale Date, Delivery Date, Expiry Date).
+  * `dim_hospital` (with beds banded into Small, Medium, Large `SizeBand`).
+  * `dim_pharmacy` (with GLN zero-padding and channel derivation).
+  * `dim_sale_profile` & `dim_request_profile` (Junk Dimensions compressing return flags and OTIF status).
+- SCD-2 Live Proof: Show how `MED005` has two versions in `dim_medicine` (Version 1 closed, Version 2 current).
+
+[WHAT TO SAY]
+"Pillar 4 is Transformation and Dimensional Modeling.
+In `dag_03_transform`, we load staged records into DuckDB 1.1. We selected DuckDB for its
+vectorized columnar execution engine, allowing multi-table joins and window functions across
+a million rows in under 400 milliseconds.
+
+We modeled the Sales & Demand Intelligence (SDI) Mart with two distinct grains:
+1. `fact_pharmacy_sale` at the transactional grain with financial metrics like Net Sales, COGS, and Margin.
+2. `fact_hospital_demand` at the monthly periodic snapshot grain tracking fulfillment shortfalls.
+
+Our schema features 9 dimensions, including junk dimensions to collapse discrete flags,
+role-playing date keys, and conformed dimensions ready for the enterprise constellation.
+
+Crucially, observe `dim_medicine`: it implements Slowly Changing Dimension Type 2.
+When Cycle 2 updated prices for MED005, the pipeline expired the original record with
+`IsCurrent = 'N'` and created a new current record with a new surrogate key. Prior transactions
+remain bound to the historical surrogate key, guaranteeing that historical margin reporting
+remains mathematically unaltered."
+
+
+================================================================================
+SECTION 6 | 03:35 - 04:15 | QUERY LAYER & OPTIMIZATION (WEIGHTAGE: 2%)
+================================================================================
+[SCREEN TO DISPLAY]
+Grafana -> Open `04 - Analytical Query Performance`.
+(Also mention Airflow `dag_04_query` which runs the automated benchmark suite).
+
+[WHAT TO POINT OUT]
+- Benchmark of 6 core analytical queries comparing Base (unindexed staging) vs. Optimized (DuckDB OLAP).
+- [RUBRIC CHART]: Column / Bar Chart of Average Execution Time per Query Workload.
+- Speedup Multipliers: Analytical queries run **2.3x to 5.1x faster**
+  (e.g., Monthly Sales Trend runs in 18 ms on optimized mart vs. 92 ms on base staging).
+- Daily Active Query Count (>100 benchmark runs logged in `ops.query_execution_log`).
+- Query Error Rate: 0.00% across all automated runs.
+
+[WHAT TO SAY]
+"Pillar 5 is the Analytical Query and Query Optimization Layer.
+In `dag_04_query`, we execute automated benchmarks across 6 core analytical workloads, comparing
+unoptimized staging queries against our columnar dimensional views.
+
+Here on our 'Analytical Query Performance' dashboard, you can see the results:
+Vectorized columnar execution, dimensional star-join pre-filtering, and materialized summary
+views deliver speedup multipliers between 2.3x and 5.1x.
+Complex cross-table aggregations—such as 36-month sales trends and hospital fulfillment ratios—
+drop from nearly 100 milliseconds down to just 18 milliseconds, with a 0% query error rate
+across all automated benchmark executions."
+
+
+================================================================================
+SECTION 7 | 04:15 - 05:00 | BUSINESS INTELLIGENCE & LIVE REFRESH (WEIGHTAGE: 10%)
+================================================================================
+[SCREEN TO DISPLAY]
+Grafana -> Open the 3 BI Decision Cockpits under the "Pharma DWH" folder:
+1. `Channel Revenue & Margin`
+2. `Hospital Forecast vs Actual`
+3. `Fast vs Slow Movers`
+
+[WHAT TO POINT OUT]
+1. Adherence to Slide 67 Decision-Focused Rubric:
+   - One explicit decision per dashboard (e.g., 'Which channel needs margin action?').
+   - Neutral descriptive titles (no hardcoded takeaways that break on refresh).
+   - Target thresholds embedded directly in stat cards (`Target: ≥ 35.0%`, `Target: 0`).
+   - 60-30-10 palette: Dark slate background, cobalt blue accents, red reserved strictly for alerts.
+   - Interactive drill-down filters (`$channel`, `$region`, `$hospital`).
+2. Cockpit 1 (Channel Margin): Net Sales $11.95M, Margin 34.22%, Retail leads with $6.59M,
+   while E-commerce exhibits a 24.3% return rate requiring courier SLA action.
+3. Cockpit 2 (Hospital Forecast): 98.41% Service Level, 129,113 unfulfilled packs.
+   Show the Priority Action Queue at the bottom with actionable buttons and countermeasures
+   (`🔴 Dispatch Emergency Re-supply`, `🟡 Re-allocate Regional Buffer`).
+4. Cockpit 3 (Fast vs Slow): Identifies high-velocity drivers vs delisting candidates.
+5. Live Refresh Proof: Show that both data cycles are fully reflected in these live numbers.
+
+[WHAT TO SAY]
+"Finally, Pillar 6: the Business Intelligence Layer.
+Rather than a cluttered monolithic screen, we built three dedicated decision cockpits strictly
+adhering to Dr. Tariq Mahmood's Slide 67 Rubric.
+
+On 'Channel Revenue & Margin', we answer: 'Which sales channel needs margin action?'
+Our headline KPIs embed target thresholds: Net Sales is $11.95 Million, gross margin is 34.22%
+against our 35% goal, and E-commerce shows a 24.3% return rate—immediately flagging courier
+lead times as our profit leak.
+
+On 'Hospital Forecast vs Actual', we answer: 'Which facilities require emergency rebalancing?'
+While overall OTIF is 98.41%, our Priority Action Queue ranks facilities by unfulfilled packs
+and pairs them with concrete logistical directives—such as dispatching emergency resupply.
+
+And on 'Fast vs Slow Movers', formulary managers can immediately identify delisting candidates.
+
+All 7 dashboards—comprising 72 live panels—are verified and operating with zero errors, fully
+refreshed with our two oversampling cycles.
+
+In conclusion, Phase 1 delivers a complete, resilient, enterprise-grade Data Engineering and
+BI platform. Thank you, and I look forward to your questions!"
+
+================================================================================
+                          END OF DEMONSTRATION SCRIPT
+================================================================================
