@@ -1,0 +1,352 @@
+{
+  "uid": "bi-fefo-compliance",
+  "title": "FEFO Compliance Score",
+  "description": "Track First-Expired, First-Out (FEFO) fulfillment compliance across distribution centers and carrier delivery OTIF",
+  "tags": [
+    "phase2",
+    "inventory",
+    "fefo",
+    "compliance",
+    "bi"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "editable": true,
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "html",
+        "content": "\n<div style=\"display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #181B1F 0%, #1e2228 100%); padding: 10px 18px; border-radius: 6px; border-left: 4px solid #3274D9; margin-bottom: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);\">\n  <div>\n    <div style=\"font-size: 16px; font-weight: 600; color: #FFFFFF; letter-spacing: 0.3px;\">FEFO Fulfillment Compliance & Logistics Scorecard</div>\n    <div style=\"font-size: 12px; color: #8E8E93; margin-top: 2px;\"><b>Primary Decision:</b> Audit pick-rule adherence to eliminate warehouse waste and track carrier reliability &nbsp;|&nbsp; <b>Audience:</b> Warehouse Operations Manager & Logistics Director &nbsp;|&nbsp; <b>Auto-Refresh:</b> 10s</div>\n  </div>\n  <div style=\"display: flex; gap: 8px;\">\n    <a href=\"/d/bi-stockout-overstock/stockout-vs-overstock\" style=\"background: #22262E; color: #61AFFE; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3274D9;\">\ud83d\udce6 Stockout / Overstock</a>\n    <a href=\"/d/bi-near-expiry/near-expiry-risk-matrix\" style=\"background: #22262E; color: #FADE2A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #EAB839;\">\u26a0\ufe0f Expiry Matrix</a>\n    <a href=\"/d/bi-fefo-compliance/fefo-compliance-score\" style=\"background: #22262E; color: #49DA9A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #299C46;\">\ud83c\udfaf FEFO Score</a>\n    <a href=\"/d/bi-channel-margin/channel-revenue-and-margin\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\udcca Phase 1 BI</a>\n    <a href=\"/d/storage-staging/storage-and-staging-health\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\uddc4\ufe0f Storage DE</a>\n  </div>\n</div>\n"
+      },
+      "transparent": true
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Overall Network FEFO Compliance",
+      "description": "Target: >= 90.0% First-Expired, First-Out pick adherence",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 2
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT round(100.0 * sum(compliant_rows) / sum(pick_rows), 2) AS \"FEFO %\" FROM mart.fefo",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#F2495C",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 85
+              },
+              {
+                "color": "green",
+                "value": 90
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Network Carrier OTIF %",
+      "description": "On-Time and In-Full manufacturer delivery reliability",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 2
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT round(avg(otif_pct), 2) AS \"Avg OTIF %\" FROM mart.carrier_otif",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#F2495C",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 80
+              },
+              {
+                "color": "green",
+                "value": 90
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Total Pick Events Audited",
+      "description": "Total warehouse batch dispatch selections evaluated",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 2
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT sum(pick_rows) AS \"Total Picks\" FROM mart.fefo",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 5,
+      "type": "bargauge",
+      "title": "FEFO Compliance Score by Regional Warehouse",
+      "description": "Target: >= 90%. Highlights warehouse pick discipline deviations",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT wh_name, round(100.0*sum(compliant_rows)/sum(pick_rows), 2) AS fefo_pct FROM mart.fefo GROUP BY 1 ORDER BY 2 DESC",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 70,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#F2495C",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 85
+              },
+              {
+                "color": "green",
+                "value": 90
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient"
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Monthly FEFO Compliance Trend per Warehouse",
+      "description": "Longitudinal audit of pick compliance progression",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT (year_month || '-01')::timestamp AS time, wh_name AS metric, fefo_pct FROM mart.fefo ORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth"
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Inbound Carrier Performance & Freight Efficiency",
+      "description": "Carrier line volumes, On-Time In-Full delivery rate, and freight unit cost",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT carrier_name AS \"Carrier\", year_month AS \"Month\", lines AS \"Shipments\", otif_pct AS \"OTIF %\", freight_per_pack AS \"Freight Cost / Pack ($)\" FROM mart.carrier_otif ORDER BY 2 DESC, 4 DESC",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "OTIF %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Freight Cost / Pack ($)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 99,
+      "type": "timeseries",
+      "title": "Pipeline Live Refresh Verification (mart.refresh_status)",
+      "description": "Demonstrates real-time row count progression across Airflow refresh cycles",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT published_at AS time, table_name AS metric, row_count FROM mart.refresh_status ORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "stepAfter",
+            "showPoints": "always",
+            "pointSize": 6
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    }
+  ]
+}

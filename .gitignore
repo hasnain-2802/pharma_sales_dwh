@@ -12,3 +12,10 @@ data/rejected/*
 !data/*/.gitkeep
 data/warehouse/*.duckdb
 data/warehouse/*.wal
+
+data/parquet/
+data/oversampled/
+staging_backup.dump
+err.txt
+check*.txt
+profile.txt

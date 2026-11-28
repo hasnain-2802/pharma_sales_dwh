@@ -1,0 +1,395 @@
+{
+  "uid": "bi-stockout-overstock",
+  "title": "Stockout vs Overstock Monitoring",
+  "description": "Warehouse capacity utilization, days of stock cover, and stockout incidence across regional hubs",
+  "tags": [
+    "phase2",
+    "inventory",
+    "stockout",
+    "bi"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "editable": true,
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "html",
+        "content": "\n<div style=\"display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #181B1F 0%, #1e2228 100%); padding: 10px 18px; border-radius: 6px; border-left: 4px solid #3274D9; margin-bottom: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);\">\n  <div>\n    <div style=\"font-size: 16px; font-weight: 600; color: #FFFFFF; letter-spacing: 0.3px;\">Warehouse Stockout vs Overstock Monitoring Cockpit</div>\n    <div style=\"font-size: 12px; color: #8E8E93; margin-top: 2px;\"><b>Primary Decision:</b> Identify capacity strain and stock depletion risks across regional hubs &nbsp;|&nbsp; <b>Audience:</b> Supply Chain VP, Inventory Planners & Logistics Operations &nbsp;|&nbsp; <b>Auto-Refresh:</b> 10s</div>\n  </div>\n  <div style=\"display: flex; gap: 8px;\">\n    <a href=\"/d/bi-stockout-overstock/stockout-vs-overstock\" style=\"background: #22262E; color: #61AFFE; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3274D9;\">\ud83d\udce6 Stockout / Overstock</a>\n    <a href=\"/d/bi-near-expiry/near-expiry-risk-matrix\" style=\"background: #22262E; color: #FADE2A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #EAB839;\">\u26a0\ufe0f Expiry Matrix</a>\n    <a href=\"/d/bi-fefo-compliance/fefo-compliance-score\" style=\"background: #22262E; color: #49DA9A; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #299C46;\">\ud83c\udfaf FEFO Score</a>\n    <a href=\"/d/bi-channel-margin/channel-revenue-and-margin\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\udcca Phase 1 BI</a>\n    <a href=\"/d/storage-staging/storage-and-staging-health\" style=\"background: #22262E; color: #B3BAC5; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 500; border: 1px solid #3A3F4B;\">\ud83d\uddc4\ufe0f Storage DE</a>\n  </div>\n</div>\n"
+      },
+      "transparent": true
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Latest Month Monitored",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 2
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT max(year_month) AS \"Latest Month\" FROM mart.inv_by_warehouse",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Average Network Utilization",
+      "description": "Safe operating band: 60% - 90%",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 2
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT round(avg(utilisation_pct), 1) AS \"Avg Util %\" FROM mart.inv_by_warehouse WHERE year_month = (SELECT max(year_month) FROM mart.inv_by_warehouse)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 60
+              },
+              {
+                "color": "#F2495C",
+                "value": 90
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Average Days of Stock Cover",
+      "description": "Healthy inventory cover buffer",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 2
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT round(avg(days_of_cover), 1) AS \"Avg Days Cover\" FROM mart.inv_by_warehouse WHERE year_month = (SELECT max(year_month) FROM mart.inv_by_warehouse)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "d",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#F2495C",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 7
+              },
+              {
+                "color": "green",
+                "value": 14
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Total Stockout Incidents",
+      "description": "Closing quantity = 0 occurrences in latest month",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 2
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT sum(stockout_rows) AS \"Stockout Rows\" FROM mart.inv_by_warehouse WHERE year_month = (SELECT max(year_month) FROM mart.inv_by_warehouse)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#F2495C",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 6,
+      "type": "bargauge",
+      "title": "Warehouse Capacity Utilisation % (Current Month)",
+      "description": "Operating capacity saturation: Warning at 60%, Critical at 90%",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT wh_name, utilisation_pct FROM mart.inv_by_warehouse WHERE year_month = (SELECT max(year_month) FROM mart.inv_by_warehouse) ORDER BY utilisation_pct DESC",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 60
+              },
+              {
+                "color": "#F2495C",
+                "value": 90
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient"
+      }
+    },
+    {
+      "id": 7,
+      "type": "bargauge",
+      "title": "Days of Inventory Cover (Current Month)",
+      "description": "Risk of stockout if < 7 days, Overstock risk if > 90 days",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT wh_name, days_of_cover FROM mart.inv_by_warehouse WHERE year_month = (SELECT max(year_month) FROM mart.inv_by_warehouse) ORDER BY days_of_cover ASC",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "d",
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#F2495C",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 7
+              },
+              {
+                "color": "green",
+                "value": 14
+              },
+              {
+                "color": "#EAB839",
+                "value": 90
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient"
+      }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Warehouse Stockout Rate Trend (% of Lot Snapshots Depleted)",
+      "description": "Tracking stockout risk over time per distribution center",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT (year_month || '-01')::timestamp AS time, wh_name AS metric, stockout_pct FROM mart.inv_by_warehouse ORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth"
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull",
+            "mean"
+          ]
+        }
+      }
+    },
+    {
+      "id": 99,
+      "type": "timeseries",
+      "title": "Pipeline Live Refresh Verification (mart.refresh_status)",
+      "description": "Demonstrates real-time row count progression across Airflow refresh cycles",
+      "datasource": {
+        "type": "postgres",
+        "uid": "Staging-Postgres"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT published_at AS time, table_name AS metric, row_count FROM mart.refresh_status ORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "stepAfter",
+            "showPoints": "always",
+            "pointSize": 6
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    }
+  ]
+}
