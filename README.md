@@ -62,21 +62,6 @@ docker compose up -d
 | `dag_03_transform` | Manual | Staging → DuckDB star schema (incremental ETL) |
 | `dag_04_query` | Manual | Build aggregates → run 11 queries → log performance |
 
-### Running the Full Pipeline
-
-```bash
-# Cycle 1: Generate Jul-Sep 2025 data
-# Trigger dag_01_generate with params: {"cycle": 1}
-
-# Wait for dag_02_ingestion to pick up files (runs every 5 min)
-
-# Then trigger dag_03_transform and dag_04_query
-
-# Cycle 2: Generate Oct-Dec 2025 data (triggers SCD-2 price changes)
-# Trigger dag_01_generate with params: {"cycle": 2}
-# Repeat ingestion → transform → query
-```
-
 ## Data Warehouse Features
 
 ### Dimensional Model (Star Schema in DuckDB)
