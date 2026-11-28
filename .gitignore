@@ -19,3 +19,6 @@ staging_backup.dump
 err.txt
 check*.txt
 profile.txt
+
+rabbit.py
+dedupe.sql
